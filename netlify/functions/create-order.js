@@ -46,7 +46,7 @@ exports.handler = async function(event, context) {
                     "Contact Info": contactInfo,
                     "Pickup Day": pickupDay,
                     "Number of Loaves": numLoaves,
-                    "Order Date": new Date().toISOString(),
+                    "Order Date": new Date().toISOString().slice(0, 10),
                     "Status": "Pending"
                 }
             }
