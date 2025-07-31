@@ -58,6 +58,7 @@ exports.handler = async function(event, context) {
         };
 
     } catch (error) {
+        console.error(error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: 'Failed to place order' })
