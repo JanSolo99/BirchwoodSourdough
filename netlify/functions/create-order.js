@@ -15,28 +15,22 @@ exports.handler = async function(event, context) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields' }) };
     }
 
-    const dailyStock = {
-        'Tuesday': { max: 4, ordered: 0 },
-        'Wednesday': { max: 4, ordered: 0 },
-        'Thursday': { max: 4, ordered: 0 },
-    };
+    const MAX_LOAVES_PER_DAY = 4;
 
     try {
+        // Fetch existing orders for the specific pickupDay
         const records = await base('Orders').select({
-            filterByFormula: "{Status} = 'Pending'"
+            filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = '${pickupDay}')`
         }).all();
 
+        let orderedLoaves = 0;
         records.forEach(record => {
-            const day = record.get('Pickup Day');
-            const loaves = record.get('Number of Loaves') || 0;
-            if (dailyStock[day]) {
-                dailyStock[day].ordered += loaves;
-            }
+            orderedLoaves += record.get('Number of Loaves') || 0;
         });
 
-        const available = dailyStock[pickupDay].max - dailyStock[pickupDay].ordered;
+        const available = MAX_LOAVES_PER_DAY - orderedLoaves;
         if (numLoaves > available) {
-            return { statusCode: 400, body: JSON.stringify({ error: 'Not enough stock available' }) };
+            return { statusCode: 400, body: JSON.stringify({ error: 'Not enough stock available for the selected date' }) };
         }
 
         await base('Orders').create([
