@@ -1,0 +1,8 @@
+{
+  "name": "bread-preorder-serverless",
+  "version": "1.0.0",
+  "description": "Serverless functions for the bread preorder app",
+  "dependencies": {
+    "airtable": "^0.11.1"
+  }
+}
