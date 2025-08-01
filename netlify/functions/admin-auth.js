@@ -98,10 +98,20 @@ exports.handler = async (event, context) => {
 
         const isValid = isValidSession(sessionToken);
         
+        // Log for debugging
+        console.log(`Session verification: token=${sessionToken.substring(0, 8)}..., valid=${isValid}`);
+        
         return {
           statusCode: 200,
           headers,
-          body: JSON.stringify({ valid: isValid })
+          body: JSON.stringify({ 
+            valid: isValid,
+            debug: {
+              tokenProvided: !!sessionToken,
+              sessionExists: sessions.has(sessionToken),
+              totalSessions: sessions.size
+            }
+          })
         };
       }
 
