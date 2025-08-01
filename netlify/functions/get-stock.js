@@ -36,20 +36,42 @@ exports.handler = async function(event, context) {
         console.log(`Fetching orders for date: ${date}`);
         
         // Try multiple filtering approaches to ensure compatibility
-        let records;
-        try {
-            // First try: Direct date comparison (works if Pickup Day is a Date field)
-            records = await base('Orders').select({
-                filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = '${date}')`
-            }).all();
-            console.log(`Direct date filter found ${records.length} orders`);
-        } catch (error) {
-            console.log('Direct date filter failed, trying string format:', error.message);
-            // Fallback: Try as string comparison (if Pickup Day is still a text field)
-            records = await base('Orders').select({
-                filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = "${date}")`
-            }).all();
-            console.log(`String date filter found ${records.length} orders`);
+        let records = [];
+        
+        // Try different Airtable filter syntaxes
+        const filterAttempts = [
+            `AND({Status} = 'Pending', {Pickup Day} = '${date}')`,
+            `AND({Status} = "Pending", {Pickup Day} = "${date}")`,
+            `AND(Status = 'Pending', {Pickup Day} = '${date}')`,
+            `AND(Status = "Pending", {Pickup Day} = "${date}")`,
+        ];
+        
+        for (let i = 0; i < filterAttempts.length; i++) {
+            try {
+                console.log(`Trying filter ${i + 1}: ${filterAttempts[i]}`);
+                records = await base('Orders').select({
+                    filterByFormula: filterAttempts[i]
+                }).all();
+                console.log(`Filter ${i + 1} found ${records.length} orders`);
+                if (records.length > 0) {
+                    console.log(`Success with filter ${i + 1}!`);
+                    break;
+                }
+            } catch (error) {
+                console.log(`Filter ${i + 1} failed:`, error.message);
+            }
+        }
+        
+        // If no filter worked, fall back to getting all records and filtering manually
+        if (records.length === 0) {
+            console.log('All filters failed, falling back to manual filtering');
+            const allRecords = await base('Orders').select().all();
+            records = allRecords.filter(record => {
+                const pickupDay = record.get('Pickup Day');
+                const status = record.get('Status');
+                return status === 'Pending' && pickupDay === date;
+            });
+            console.log(`Manual filter found ${records.length} matching orders`);
         }
 
         records.forEach((record, index) => {

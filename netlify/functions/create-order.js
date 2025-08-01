@@ -62,19 +62,42 @@ exports.handler = async function(event, context) {
     try {
         console.log(`Creating order for ${customerName}, ${numLoaves} loaves on ${pickupDay}`);
         
-        // Fetch existing orders for the specific pickupDay with detailed logging
-        let records;
-        try {
-            records = await base('Orders').select({
-                filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = '${pickupDay}')`
-            }).all();
-            console.log(`Direct date filter found ${records.length} existing orders for ${pickupDay}`);
-        } catch (error) {
-            console.log('Direct date filter failed, trying string format:', error.message);
-            records = await base('Orders').select({
-                filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = "${pickupDay}")`
-            }).all();
-            console.log(`String date filter found ${records.length} existing orders for ${pickupDay}`);
+        // Fetch existing orders for the specific pickupDay with multiple filter attempts
+        let records = [];
+        
+        const filterAttempts = [
+            `AND({Status} = 'Pending', {Pickup Day} = '${pickupDay}')`,
+            `AND({Status} = "Pending", {Pickup Day} = "${pickupDay}")`,
+            `AND(Status = 'Pending', {Pickup Day} = '${pickupDay}')`,
+            `AND(Status = "Pending", {Pickup Day} = "${pickupDay}")`,
+        ];
+        
+        for (let i = 0; i < filterAttempts.length; i++) {
+            try {
+                console.log(`Trying filter ${i + 1}: ${filterAttempts[i]}`);
+                records = await base('Orders').select({
+                    filterByFormula: filterAttempts[i]
+                }).all();
+                console.log(`Filter ${i + 1} found ${records.length} existing orders for ${pickupDay}`);
+                if (records.length > 0) {
+                    console.log(`Success with filter ${i + 1}!`);
+                    break;
+                }
+            } catch (error) {
+                console.log(`Filter ${i + 1} failed:`, error.message);
+            }
+        }
+        
+        // If no filter worked, fall back to manual filtering
+        if (records.length === 0) {
+            console.log('All filters failed, falling back to manual filtering');
+            const allRecords = await base('Orders').select().all();
+            records = allRecords.filter(record => {
+                const pickupDay_record = record.get('Pickup Day');
+                const status = record.get('Status');
+                return status === 'Pending' && pickupDay_record === pickupDay;
+            });
+            console.log(`Manual filter found ${records.length} existing orders for ${pickupDay}`);
         }
 
         let orderedLoaves = 0;
