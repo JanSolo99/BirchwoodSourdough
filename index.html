@@ -326,9 +326,11 @@
             background-color: #d4edda;
             border: 1px solid #c3e6cb;
             color: #155724;
-            padding: 16px;
+            padding: 20px;
             border-radius: var(--border-radius);
             margin-bottom: 16px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .error-message {
@@ -522,6 +524,7 @@
 
         function clearForm() {
             document.getElementById('orderForm').reset();
+            document.getElementById('orderForm').style.display = 'block'; // Show form again
             document.getElementById('messageContainer').innerHTML = '';
             selectedPickupDate = null;
             if (flatpickrInstance) {
@@ -553,12 +556,27 @@
 
         function showMessage(message, type = 'success') {
             const container = document.getElementById('messageContainer');
-            container.innerHTML = `<div class="${type}-message">${message}</div>`;
             
             if (type === 'success') {
-                setTimeout(() => {
-                    closeOrderModal();
-                }, 3000);
+                // For success messages, show a more prominent confirmation with a close button
+                container.innerHTML = `
+                    <div class="${type}-message">
+                        <div style="font-weight: 600; margin-bottom: 8px;">✅ Order Confirmed!</div>
+                        <div style="margin-bottom: 12px;">${message}</div>
+                        <button onclick="closeOrderModal()" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                            Close & Continue
+                        </button>
+                    </div>
+                `;
+                
+                // Scroll to the top of the modal to ensure message is visible
+                document.querySelector('.modal-content').scrollTop = 0;
+                
+                // Hide the form after successful order to prevent duplicate submissions
+                document.getElementById('orderForm').style.display = 'none';
+            } else {
+                // For error messages, show normally
+                container.innerHTML = `<div class="${type}-message">${message}</div>`;
             }
         }
 
