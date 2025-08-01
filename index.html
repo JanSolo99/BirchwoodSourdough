@@ -439,13 +439,17 @@
 
         async function fetchStockLevels(date) {
             try {
+                console.log(`Fetching stock for date: ${date}`);
                 const response = await fetch(`/.netlify/functions/get-stock?date=${date}`);
                 if (response.ok) {
                     const stockData = await response.json();
+                    console.log('Stock data received:', stockData);
                     dailyStock = stockData;
                     updateAvailabilityDisplay();
                 } else {
-                    console.error('Failed to fetch stock levels from the server.');
+                    console.error('Failed to fetch stock levels from the server. Status:', response.status);
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
                     updateAvailabilityDisplay('Error loading availability');
                 }
             } catch (error) {
@@ -540,14 +544,20 @@
                 return;
             }
             
+            console.log('Updating availability display. Selected date:', selectedPickupDate);
+            console.log('Daily stock data:', dailyStock);
+            
             if (selectedPickupDate && dailyStock[selectedPickupDate]) {
                 const stock = dailyStock[selectedPickupDate];
                 const available = stock.max - stock.ordered;
                 const status = available > 0 ? 'available' : 'unavailable';
                 const statusText = available > 0 ? `${available} available` : 'Sold out';
                 
+                console.log(`Stock calculation: max=${stock.max}, ordered=${stock.ordered}, available=${available}`);
+                
                 display.innerHTML = `<div class="${status}"><strong>${selectedPickupDate}:</strong> ${statusText}</div>`;
             } else if (selectedPickupDate) {
+                console.log('No stock data found for selected date, showing default 4 available');
                 display.innerHTML = `<div class="available"><strong>${selectedPickupDate}:</strong> 4 available</div>`;
             } else {
                 display.innerHTML = 'Select a date to see availability...';
@@ -611,8 +621,9 @@
                 });
 
                 if (response.ok) {
+                    // Refresh stock levels immediately after successful order
+                    await fetchStockLevels(selectedPickupDate);
                     showMessage(`Order confirmed! ${orderData.numLoaves} loaf(es) reserved for ${orderData.pickupDay} pickup. We'll contact you at ${orderData.contactInfo} with pickup details.`);
-                    fetchStockLevels(selectedPickupDate); // Refresh stock for the selected date
                 } else {
                     const errorData = await response.json();
                     showMessage(errorData.error || 'Sorry, there was an error placing your order.', 'error');

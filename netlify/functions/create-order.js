@@ -62,23 +62,37 @@ exports.handler = async function(event, context) {
     try {
         console.log(`Creating order for ${customerName}, ${numLoaves} loaves on ${pickupDay}`);
         
-        // Fetch existing orders for the specific pickupDay
-        const records = await base('Orders').select({
-            filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = '${pickupDay}')`
-        }).all();
-
-        console.log(`Found ${records.length} existing orders for ${pickupDay}`);
+        // Fetch existing orders for the specific pickupDay with detailed logging
+        let records;
+        try {
+            records = await base('Orders').select({
+                filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = '${pickupDay}')`
+            }).all();
+            console.log(`Direct date filter found ${records.length} existing orders for ${pickupDay}`);
+        } catch (error) {
+            console.log('Direct date filter failed, trying string format:', error.message);
+            records = await base('Orders').select({
+                filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = "${pickupDay}")`
+            }).all();
+            console.log(`String date filter found ${records.length} existing orders for ${pickupDay}`);
+        }
 
         let orderedLoaves = 0;
-        records.forEach(record => {
+        records.forEach((record, index) => {
             const loaves = record.get('Number of Loaves') || 0;
+            const customer = record.get('Customer Name');
+            const pickup = record.get('Pickup Day');
+            console.log(`Existing order ${index + 1}: ${customer}, ${loaves} loaves, pickup: ${pickup}`);
             orderedLoaves += loaves;
         });
 
-        console.log(`Total loaves already ordered: ${orderedLoaves}`);
+        console.log(`Total loaves already ordered for ${pickupDay}: ${orderedLoaves}`);
 
         const available = MAX_LOAVES_PER_DAY - orderedLoaves;
+        console.log(`Available loaves for ${pickupDay}: ${available}`);
+        
         if (numLoaves > available) {
+            console.log(`Order rejected: requested ${numLoaves}, only ${available} available`);
             return { 
                 statusCode: 400, 
                 body: JSON.stringify({ 
@@ -102,6 +116,7 @@ exports.handler = async function(event, context) {
         ]);
 
         console.log(`Order created successfully: ${createResponse[0].id}`);
+        console.log(`New order details: Customer=${customerName}, Loaves=${numLoaves}, Date=${pickupDay}`);
 
         return {
             statusCode: 201,

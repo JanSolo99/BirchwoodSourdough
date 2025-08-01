@@ -35,20 +35,33 @@ exports.handler = async function(event, context) {
     try {
         console.log(`Fetching orders for date: ${date}`);
         
-        // Use date comparison for more robust filtering
-        const records = await base('Orders').select({
-            filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = '${date}')`
-        }).all();
+        // Try multiple filtering approaches to ensure compatibility
+        let records;
+        try {
+            // First try: Direct date comparison (works if Pickup Day is a Date field)
+            records = await base('Orders').select({
+                filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = '${date}')`
+            }).all();
+            console.log(`Direct date filter found ${records.length} orders`);
+        } catch (error) {
+            console.log('Direct date filter failed, trying string format:', error.message);
+            // Fallback: Try as string comparison (if Pickup Day is still a text field)
+            records = await base('Orders').select({
+                filterByFormula: `AND({Status} = 'Pending', {Pickup Day} = "${date}")`
+            }).all();
+            console.log(`String date filter found ${records.length} orders`);
+        }
 
-        console.log(`Found ${records.length} orders for ${date}`);
-
-        records.forEach(record => {
+        records.forEach((record, index) => {
             const loaves = record.get('Number of Loaves') || 0;
+            const pickupDay = record.get('Pickup Day');
+            const customerName = record.get('Customer Name');
+            console.log(`Order ${index + 1}: ${customerName}, ${loaves} loaves, pickup: ${pickupDay}`);
             stockForDate.ordered += loaves;
-            console.log(`Order: ${loaves} loaves`);
         });
 
         console.log(`Total ordered for ${date}: ${stockForDate.ordered}`);
+        console.log(`Available for ${date}: ${stockForDate.max - stockForDate.ordered}`);
 
         return {
             statusCode: 200,
