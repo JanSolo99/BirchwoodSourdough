@@ -1,0 +1,1 @@
+Fix: Correctly format Airtable update request to resolve 500 error

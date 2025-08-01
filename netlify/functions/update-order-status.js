@@ -10,7 +10,7 @@ const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
 
@@ -24,7 +24,14 @@ exports.handler = async (event, context) => {
 
     const { orderId, status } = JSON.parse(event.body);
 
-    await base('Orders').update(orderId, { Status: status });
+    await base('Orders').update([
+      {
+        id: orderId,
+        fields: {
+          Status: status,
+        },
+      },
+    ]);
 
     return {
       statusCode: 200,
