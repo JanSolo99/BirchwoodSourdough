@@ -638,11 +638,23 @@
                 });
 
                 if (response.ok) {
-                    document.getElementById('orderTotal').textContent = totalAmount.toFixed(2);
-                    document.getElementById('orderReference').textContent = orderRef;
-                    
+                    // First show the success message with payment instructions
                     showMessage(`${orderData.numLoaves} loaf(es) reserved for ${orderData.pickupDay} pickup at ${orderData.pickupLocation}.`);
                     
+                    // Then update the payment details after the elements exist
+                    setTimeout(() => {
+                        const totalElement = document.getElementById('orderTotal');
+                        const refElement = document.getElementById('orderReference');
+                        
+                        if (totalElement) {
+                            totalElement.textContent = totalAmount.toFixed(2);
+                        }
+                        if (refElement) {
+                            refElement.textContent = orderRef;
+                        }
+                    }, 100);
+                    
+                    // Refresh stock levels after successful order
                     await fetchStockLevels(selectedPickupDate);
                 } else {
                     const errorData = await response.json();
