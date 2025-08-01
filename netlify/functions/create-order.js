@@ -85,9 +85,6 @@ exports.handler = async function(event, context) {
         // Fetch existing orders for the specific pickupDay with multiple filter attempts
         let records = [];
         
-        // Fetch existing orders for the specific pickupDay with multiple filter attempts
-        let records = [];
-        
         const filterAttempts = [
             `AND(OR({Status} = 'Pending Payment', {Status} = 'Payment Received', {Status} = 'Ready for Pickup', {Status} = 'Confirmed'), {Pickup Day} = '${pickupDay}')`,
             `AND(OR({Status} = "Pending Payment", {Status} = "Payment Received", {Status} = "Ready for Pickup", {Status} = "Confirmed"), {Pickup Day} = "${pickupDay}")`,
@@ -163,13 +160,7 @@ exports.handler = async function(event, context) {
             "Status": "Pending Payment"
         };
 
-        console.log('Creating Airtable record with basic fields:', fields);
-
-        const createResponse = await base('Orders').create([
-            {
-                "fields": fields
-            }
-        ]); Add optional fields only if they have values
+        // Add optional fields only if they have values
         if (pickupLocation) {
             fields["Pickup Location"] = pickupLocation;
         }
@@ -179,6 +170,8 @@ exports.handler = async function(event, context) {
         if (orderReference) {
             fields["Order Reference"] = orderReference;
         }
+
+        console.log('Creating Airtable record with fields:', fields);
 
         const createResponse = await base('Orders').create([
             {
