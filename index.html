@@ -47,12 +47,6 @@
             text-align: center;
         }
 
-        .logo {
-            max-width: 200px;
-            height: auto;
-            margin-bottom: 16px;
-        }
-
         .site-title {
             font-family: 'Josefin Sans', sans-serif;
             font-weight: 400;
@@ -342,8 +336,8 @@
             margin-bottom: 16px;
         }
     </style>
-</head>
-<body>    <header class="header">
+</head><body>
+    <header class="header">
         <div class="container">
             <h1 class="site-title">
                 <span class="birchwood">BIRCHWOOD</span>
@@ -506,199 +500,6 @@
             const dayOfWeek = date.getDay();
             
             // Calculate days to add to get to next Tuesday, Wednesday, or Thursday
-            let daysToAdd = 0;
-            if (dayOfWeek === 0) daysToAdd = 2; // Sunday -> Tuesday
-            else if (dayOfWeek === 1) daysToAdd = 1; // Monday -> Tuesday
-            else if (dayOfWeek === 2) daysToAdd = 0; // Tuesday (if not past)
-            else if (dayOfWeek === 3) daysToAdd = 0; // Wednesday (if not past)
-            else if (dayOfWeek === 4) daysToAdd = 0; // Thursday (if not past)
-            else if (dayOfWeek === 5) daysToAdd = 4; // Friday -> next Tuesday
-            else if (dayOfWeek === 6) daysToAdd = 3; // Saturday -> next Tuesday
-            
-            // If it's today and we're past business hours, go to next available day
-            const now = new Date();
-            if (daysToAdd === 0 && date.toDateString() === now.toDateString()) {
-                // If it's after 6 PM today, move to next available day
-                if (now.getHours() >= 18) {
-                    if (dayOfWeek === 2) daysToAdd = 1; // Tuesday -> Wednesday
-                    else if (dayOfWeek === 3) daysToAdd = 1; // Wednesday -> Thursday
-                    else if (dayOfWeek === 4) daysToAdd = 5; // Thursday -> next Tuesday
-                }
-            }
-            
-            date.setDate(date.getDate() + daysToAdd);
-            return date;
-        }
-
-        function closeOrderModal() {
-            document.getElementById('orderModal').style.display = 'none';
-            clearForm();
-        }
-
-        function clearForm() {
-            document.getElementById('orderForm').reset();
-            document.getElementById('orderForm').style.display = 'block'; // Show form again
-            document.getElementById('messageContainer').innerHTML = '';
-            selectedPickupDate = null;
-            if (flatpickrInstance) {
-                flatpickrInstance.clear();
-            }
-        }
-
-        function updateAvailabilityDisplay(errorMessage = null) {
-            const display = document.getElementById('availabilityDisplay');
-            
-            if (errorMessage) {
-                display.innerHTML = `<div style="color: #dc3545;">${errorMessage}</div>`;
-                return;
-            }
-            
-            console.log('Updating availability display. Selected date:', selectedPickupDate);
-            console.log('Daily stock data:', dailyStock);
-            
-            if (selectedPickupDate && dailyStock[selectedPickupDate]) {
-                const stock = dailyStock[selectedPickupDate];
-                const available = stock.max - stock.ordered;
-                const status = available > 0 ? 'available' : 'unavailable';
-                const statusText = available > 0 ? `${available} available` : 'Sold out';
-                
-                console.log(`Stock calculation: max=${stock.max}, ordered=${stock.ordered}, available=${available}`);
-                
-                display.innerHTML = `<div class="${status}"><strong>${selectedPickupDate}:</strong> ${statusText}</div>`;
-            } else if (selectedPickupDate) {
-                console.log('No stock data found for selected date, showing default 4 available');
-                display.innerHTML = `<div class="available"><strong>${selectedPickupDate}:</strong> 4 available</div>`;
-            } else {
-                display.innerHTML = 'Select a date to see availability...';
-            }
-        }
-
-        function showMessage(message, type = 'success') {
-            const container = document.getElementById('messageContainer');
-            
-            if (type === 'success') {
-                // For success messages, show payment instructions
-                container.innerHTML = `
-                    <div class="${type}-message">
-                        <div style="font-weight: 600; margin-bottom: 12px;">🍞 Order Received!</div>
-                        <div style="margin-bottom: 16px;">${message}</div>
-                        <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 16px; margin: 16px 0; font-family: monospace;">
-                            <div style="font-weight: 600; margin-bottom: 8px; color: #155724;">💳 Payment Required to Confirm Order:</div>
-                            <div style="margin-bottom: 4px;"><strong>PayID:</strong> jan.berkhout@up.me</div>                         
-                            <div style="margin-bottom: 4px;"><strong>Amount:</strong> A$<span id="orderTotal">0</span></div>
-                            <div style="margin-bottom: 12px;"><strong>Reference:</strong> <span id="orderReference">BreadOrder</span></div>
-                            <div style="font-size: 0.9rem; color: #721c24; background-color: #f8d7da; padding: 8px; border-radius: 4px;">
-                                ⚠️ Your order will only be confirmed once payment is received. Please include the reference number.
-                            </div>
-                        </div>
-                        <button onclick="closeOrderModal()" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; width: 100%;">
-                            I've Made Payment - Close
-                        </button>
-                    </div>
-                `;
-                
-                // Scroll to the top of the modal to ensure message is visible
-                document.querySelector('.modal-content').scrollTop = 0;
-                
-                // Hide the form after successful order to prevent duplicate submissions
-                document.getElementById('orderForm').style.display = 'none';
-            } else {
-                // For error messages, show normally
-                container.innerHTML = `<div class="${type}-message">${message}</div>`;
-            }
-        }
-
-        // Form submission
-        document.getElementById('orderForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!selectedPickupDate) {
-                showMessage('Please select a pickup date.', 'error');
-                return;
-            }
-            
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Placing Order...';
-            
-            const formData = new FormData(this);
-            const numLoaves = parseInt(formData.get('numLoaves'));
-            const totalAmount = numLoaves * 8; // $8 per loaf
-            
-            const orderData = {
-                customerName: formData.get('customerName'),
-                contactInfo: formData.get('contactInfo'),
-                pickupDay: selectedPickupDate,
-                pickupLocation: formData.get('pickupLocation'),
-                numLoaves: numLoaves,
-                totalAmount: totalAmount
-            };
-            
-            // Generate order reference
-            const orderRef = `BreadOrder-${selectedPickupDate}-${orderData.customerName.replace(/\s+/g, '')}`;
-            
-            try {
-                const response = await fetch('/.netlify/functions/create-order', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(orderData)
-                });
-
-                if (response.ok) {
-                    // Update the payment details in the success message
-                    document.getElementById('orderTotal').textContent = totalAmount.toFixed(2);
-                    document.getElementById('orderReference').textContent = orderRef;
-                    
-                    showMessage(`${orderData.numLoaves} loaf(es) reserved for ${orderData.pickupDay} pickup at ${orderData.pickupLocation}.`);
-                    
-                    // Refresh stock levels after successful order
-                    await fetchStockLevels(selectedPickupDate);
-                } else {
-                    const errorData = await response.json();
-                    showMessage(errorData.error || 'Sorry, there was an error placing your order.', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Order submission error:', error);
-                showMessage('Sorry, there was an error placing your order. Please try again or contact us directly.', 'error');
-            }
-            
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Place Preorder';
-        });
-                } else {
-                    const errorData = await response.json();
-                    showMessage(errorData.error || 'Sorry, there was an error placing your order.', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Order submission error:', error);
-                showMessage('Sorry, there was an error placing your order. Please try again or contact us directly.', 'error');
-            }
-            
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Place Preorder';
-        });
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('orderModal');
-            if (event.target === modal) {
-                closeOrderModal();
-            }
-        }
-
-        // Newsletter form
-        document.querySelector('.newsletter-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for subscribing to our newsletter!');
-            this.reset();
-        });
-    </script>
-</body>
-</html>            // Calculate days to add to get to next Tuesday, Wednesday, or Thursday
             let daysToAdd = 0;
             if (dayOfWeek === 0) daysToAdd = 2; // Sunday -> Tuesday
             else if (dayOfWeek === 1) daysToAdd = 1; // Monday -> Tuesday
