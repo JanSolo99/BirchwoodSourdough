@@ -30,67 +30,60 @@ exports.handler = async function(event, context) {
         };
     }
 
-    const stockRecord = await base('Stock').select({
-        filterByFormula: `{Date} = '${date}'`
-    }).firstPage();
+    // Get stock limits for the date
+    let stockForDate = { max: 4, ordered: 0 }; // Default values
+    
+    try {
+        const stockRecords = await base('Stock').select({
+            filterByFormula: `{Date} = '${date}'`
+        }).firstPage();
 
-    const maxLoaves = stockRecord ? stockRecord.fields['Max Loaves'] : 4;
-    const stockForDate = { max: maxLoaves, ordered: 0 };
+        if (stockRecords.length > 0) {
+            stockForDate.max = stockRecords[0].fields['Max Loaves'] || 4;
+        }
+        console.log(`Max loaves for ${date}: ${stockForDate.max}`);
+    } catch (error) {
+        console.log('Error fetching stock limits, using default:', error.message);
+    }
 
     try {
         console.log(`Fetching orders for date: ${date}`);
         
-        // Try multiple filtering approaches - count all confirmed orders, not just pending
+        // Simple approach: get all orders for the specific date
         let records = [];
         
-        // Updated filters to include all relevant order statuses (not just Pending)
-        const filterAttempts = [
-            `AND(OR({Status} = 'Pending Payment', {Status} = 'Payment Received', {Status} = 'Ready for Pickup', {Status} = 'Confirmed'), {Pickup Day} = '${date}')`,
-            `AND(OR({Status} = "Pending Payment", {Status} = "Payment Received", {Status} = "Ready for Pickup", {Status} = "Confirmed"), {Pickup Day} = "${date}")`,
-            `AND(OR(Status = 'Pending Payment', Status = 'Payment Received', Status = 'Ready for Pickup', Status = 'Confirmed'), {Pickup Day} = '${date}')`,
-            `AND(OR(Status = "Pending Payment", Status = "Payment Received", Status = "Ready for Pickup", Status = "Confirmed"), {Pickup Day} = "${date}")`,
-            `{Pickup Day} = '${date}'` // Fallback: get all orders for the date regardless of status
-        ];
-        
-        for (let i = 0; i < filterAttempts.length; i++) {
-            try {
-                console.log(`Trying filter ${i + 1}: ${filterAttempts[i]}`);
-                records = await base('Orders').select({
-                    filterByFormula: filterAttempts[i]
-                }).all();
-                console.log(`Filter ${i + 1} found ${records.length} orders`);
-                if (records.length > 0) {
-                    console.log(`Success with filter ${i + 1}!`);
-                    break;
-                }
-            } catch (error) {
-                console.log(`Filter ${i + 1} failed:`, error.message);
-            }
-        }
-        
-        // If no filter worked, fall back to getting all records and filtering manually
-        if (records.length === 0) {
-            console.log('All filters failed, falling back to manual filtering');
+        try {
+            // Try with simple date filter first
+            records = await base('Orders').select({
+                filterByFormula: `{Pickup Day} = '${date}'`
+            }).all();
+            console.log(`Found ${records.length} orders for date ${date}`);
+        } catch (error) {
+            console.log(`Date filter failed: ${error.message}`);
+            
+            // If that fails, get all records and filter manually
+            console.log('Falling back to manual filtering');
             const allRecords = await base('Orders').select().all();
             records = allRecords.filter(record => {
                 const pickupDay = record.get('Pickup Day');
-                const status = record.get('Status');
-                const isValidStatus = ['Pending Payment', 'Payment Received', 'Ready for Pickup', 'Confirmed', 'Pending'].includes(status);
-                const matchesDate = pickupDay === date;
-                
-                console.log(`Checking record: Status="${status}", PickupDay="${pickupDay}", ValidStatus=${isValidStatus}, MatchesDate=${matchesDate}`);
-                
-                return matchesDate && isValidStatus;
+                return pickupDay === date;
             });
             console.log(`Manual filter found ${records.length} matching orders`);
         }
 
+        // Count loaves from all orders (regardless of status) for the date
         records.forEach((record, index) => {
             const loaves = record.get('Number of Loaves') || 0;
             const pickupDay = record.get('Pickup Day');
             const customerName = record.get('Customer Name');
-            console.log(`Order ${index + 1}: ${customerName}, ${loaves} loaves, pickup: ${pickupDay}`);
-            stockForDate.ordered += loaves;
+            const status = record.get('Status');
+            
+            console.log(`Order ${index + 1}: ${customerName}, ${loaves} loaves, pickup: ${pickupDay}, status: ${status}`);
+            
+            // Only count orders that aren't cancelled
+            if (status !== 'Cancelled') {
+                stockForDate.ordered += loaves;
+            }
         });
 
         console.log(`Total ordered for ${date}: ${stockForDate.ordered}`);
