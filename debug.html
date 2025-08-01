@@ -71,9 +71,10 @@
         <h2>2. Test Stock API</h2>
         <div class="form-group">
             <label for="stockDate">Enter date to check stock (YYYY-MM-DD):</label>
-            <input type="text" id="stockDate" placeholder="2025-08-05">
+            <input type="text" id="stockDate" placeholder="2025-08-06">
         </div>
         <button onclick="testStockAPI()">Check Stock</button>
+        <button onclick="debugStockAPI()">Debug Stock API</button>
         <div id="stockOutput"></div>
     </div>
 
@@ -170,7 +171,30 @@
             }
         }
 
-        async function testOrderAPI() {
+        async function debugStockAPI() {
+            const date = document.getElementById('stockDate').value;
+            if (!date) {
+                alert('Please enter a date');
+                return;
+            }
+            
+            log(`Testing debug stock API for date: ${date}`);
+            
+            try {
+                const response = await fetch(`/.netlify/functions/debug-stock?date=${date}`);
+                const data = await response.json();
+                
+                document.getElementById('stockOutput').innerHTML = `
+                    <h4>Debug Response (Status: ${response.status}):</h4>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                log(`Debug API response: ${JSON.stringify(data)}`);
+            } catch (error) {
+                log(`Debug API error: ${error.message}`);
+                document.getElementById('stockOutput').innerHTML = `<div style="color: red;">Error: ${error.message}</div>`;
+            }
+        }
             const orderData = {
                 customerName: document.getElementById('customerName').value,
                 contactInfo: document.getElementById('contactInfo').value,
