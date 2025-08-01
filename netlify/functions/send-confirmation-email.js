@@ -16,8 +16,17 @@ exports.handler = async (event, context) => {
       return { statusCode: 200, body: JSON.stringify({ message: 'Contact info is not a valid email address. Skipping email confirmation.' }) };
     }
 
-    await resend.emails.send({
-      from: 'Birchwood Sourdough <noreply@yourdomain.com>', // Replace with your domain
+    // Check if we have the API key
+    if (!RESEND_API_KEY) {
+      console.error('RESEND_API_KEY environment variable not set');
+      return { statusCode: 200, body: JSON.stringify({ message: 'Email service not configured. Order created successfully.' }) };
+    }
+
+    console.log('Sending confirmation email to:', contactInfo);
+    console.log('Order details:', { customerName, pickupDay, pickupLocation, numLoaves, totalAmount });
+
+    const emailResult = await resend.emails.send({
+      from: 'onboarding@resend.dev', // Using Resend's development domain - change to your verified domain later
       to: [contactInfo],
       subject: 'Your Birchwood Sourdough Order Confirmation',
       html: `
@@ -35,7 +44,8 @@ exports.handler = async (event, context) => {
       `,
     });
 
-    return { statusCode: 200, body: JSON.stringify({ message: 'Confirmation email sent successfully.' }) };
+    console.log('Email sent successfully:', emailResult);
+    return { statusCode: 200, body: JSON.stringify({ message: 'Confirmation email sent successfully.', emailId: emailResult.data?.id }) };
 
   } catch (error) {
     console.error('Error sending confirmation email:', error);
