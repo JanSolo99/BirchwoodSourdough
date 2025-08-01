@@ -1,1 +1,1 @@
-Feat: Add order deadline notice to order form
+Feat: Add email confirmation for new orders

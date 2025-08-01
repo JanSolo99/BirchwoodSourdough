@@ -179,6 +179,30 @@ exports.handler = async function(event, context) {
             }
         ]);
 
+        // Send confirmation email
+        try {
+          const emailResponse = await fetch('/.netlify/functions/send-confirmation-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              customerName,
+              contactInfo,
+              pickupDay,
+              pickupLocation,
+              numLoaves,
+              totalAmount: calculatedTotal,
+              orderReference
+            })
+          });
+          if (!emailResponse.ok) {
+            console.error('Failed to send confirmation email:', await emailResponse.text());
+          }
+        } catch (emailError) {
+          console.error('Error sending confirmation email:', emailError);
+        }
+
         console.log(`Order created successfully: ${createResponse[0].id}`);
         console.log(`New order details: Customer=${customerName}, Loaves=${numLoaves}, Date=${pickupDay}, Location=${pickupLocation || 'TBD'}, Amount=A$${calculatedTotal}`);
 
