@@ -1,1 +1,1 @@
-Feat: Add email confirmation for new orders
+Feat: Add stock management and daily bake sheet

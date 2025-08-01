@@ -498,6 +498,22 @@
             </div>
         </div>
 
+        <div class="filter-section">
+            <h3>Stock Management</h3>
+            <div class="filter-group">
+                <label for="stockDate">Date:</label>
+                <input type="date" id="stockDate" class="filter-input">
+                <label for="maxLoaves">Max Loaves:</label>
+                <input type="number" id="maxLoaves" class="filter-input" min="0" value="4">
+                <button onclick="updateStock()" class="btn btn-primary btn-small">Set Stock</button>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <h3>Daily Bake Sheet</h3>
+            <div id="bakeSheetContainer"></div>
+        </div>
+
         <div id="errorContainer"></div>
 
         <div class="orders-section">
@@ -652,6 +668,7 @@
                 
                 updateStats();
                 filterAndDisplayOrders();
+                generateBakeSheet();
                 
             } catch (error) {
                 console.error('Error loading orders:', error);
@@ -803,6 +820,69 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        async function updateStock() {
+            const date = document.getElementById('stockDate').value;
+            const maxLoaves = parseInt(document.getElementById('maxLoaves').value);
+
+            if (!date || isNaN(maxLoaves)) {
+                showError('Please select a date and enter a valid number of loaves.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/.netlify/functions/update-stock', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ date, maxLoaves })
+                });
+
+                if (response.ok) {
+                    showError('Stock updated successfully!');
+                    loadOrders(); // Refresh orders to update bake sheet
+                } else {
+                    throw new Error('Failed to update stock');
+                }
+            } catch (error) {
+                console.error('Error updating stock:', error);
+                showError(`Failed to update stock: ${error.message}`);
+            }
+        }
+
+        function generateBakeSheet() {
+            const bakeSheetContainer = document.getElementById('bakeSheetContainer');
+            const upcomingOrders = allOrders.filter(order => new Date(order.pickupDay) >= new Date());
+
+            const bakeSheet = upcomingOrders.reduce((acc, order) => {
+                if (!acc[order.pickupDay]) {
+                    acc[order.pickupDay] = { paid: 0, pending: 0 };
+                }
+                if (order.status === 'Payment Received') {
+                    acc[order.pickupDay].paid += order.numLoaves;
+                } else if (order.status === 'Pending Payment') {
+                    acc[order.pickupDay].pending += order.numLoaves;
+                }
+                return acc;
+            }, {});
+
+            const sortedDates = Object.keys(bakeSheet).sort();
+
+            if (sortedDates.length === 0) {
+                bakeSheetContainer.innerHTML = '<p>No upcoming orders.</p>';
+                return;
+            }
+
+            bakeSheetContainer.innerHTML = sortedDates.map(date => `
+                <div class="bake-sheet-item">
+                    <strong>${formatDate(date)}:</strong> 
+                    ${bakeSheet[date].paid + bakeSheet[date].pending} loaves to bake 
+                    (${bakeSheet[date].paid} paid, ${bakeSheet[date].pending} pending)
+                </div>
+            `).join('');
         }
 
         // Event listeners

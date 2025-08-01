@@ -30,7 +30,12 @@ exports.handler = async function(event, context) {
         };
     }
 
-    const stockForDate = { max: 4, ordered: 0 };
+    const stockRecord = await base('Stock').select({
+        filterByFormula: `{Date} = '${date}'`
+    }).firstPage();
+
+    const maxLoaves = stockRecord ? stockRecord.fields['Max Loaves'] : 4;
+    const stockForDate = { max: maxLoaves, ordered: 0 };
 
     try {
         console.log(`Fetching orders for date: ${date}`);
