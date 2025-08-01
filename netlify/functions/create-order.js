@@ -30,10 +30,10 @@ exports.handler = async function(event, context) {
         };
     }
 
-    const { customerName, contactInfo, pickupDay, numLoaves } = orderData;
+    const { customerName, contactInfo, pickupDay, pickupLocation, numLoaves, totalAmount } = orderData;
 
     // Validate required fields
-    if (!customerName || !contactInfo || !pickupDay || !numLoaves) {
+    if (!customerName || !contactInfo || !pickupDay || !pickupLocation || !numLoaves) {
         return { 
             statusCode: 400, 
             body: JSON.stringify({ error: 'Missing required fields' }) 
@@ -125,21 +125,27 @@ exports.handler = async function(event, context) {
         }
 
         // Create the order record
+        const orderReference = `BreadOrder-${pickupDay}-${customerName.replace(/\s+/g, '')}`;
+        
         const createResponse = await base('Orders').create([
             {
                 "fields": {
                     "Customer Name": customerName,
                     "Contact Info": contactInfo,
                     "Pickup Day": pickupDay,
+                    "Pickup Location": pickupLocation,
                     "Number of Loaves": numLoaves,
+                    "Total Amount": totalAmount || (numLoaves * 8),
+                    "Order Reference": orderReference,
                     "Order Date": new Date().toISOString().slice(0, 10),
-                    "Status": "Pending"
+                    "Status": "Pending Payment",
+                    "Payment Status": "Awaiting Payment"
                 }
             }
         ]);
 
         console.log(`Order created successfully: ${createResponse[0].id}`);
-        console.log(`New order details: Customer=${customerName}, Loaves=${numLoaves}, Date=${pickupDay}`);
+        console.log(`New order details: Customer=${customerName}, Loaves=${numLoaves}, Date=${pickupDay}, Location=${pickupLocation}, Amount=A$${totalAmount || (numLoaves * 8)}`);
 
         return {
             statusCode: 201,
@@ -148,8 +154,10 @@ exports.handler = async function(event, context) {
                 'Access-Control-Allow-Origin': '*'
             },
             body: JSON.stringify({ 
-                message: 'Order placed successfully',
-                orderId: createResponse[0].id 
+                message: 'Order placed successfully - awaiting payment confirmation',
+                orderId: createResponse[0].id,
+                orderReference: orderReference,
+                totalAmount: totalAmount || (numLoaves * 8)
             })
         };
 

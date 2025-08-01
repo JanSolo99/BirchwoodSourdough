@@ -416,13 +416,22 @@
                 </div>
                 
                 <div class="form-group">
+                    <label class="form-label" for="pickupLocation">Pickup Location *</label>
+                    <select id="pickupLocation" name="pickupLocation" class="form-select" required>
+                        <option value="">Select pickup location</option>
+                        <option value="Linq Apartments Courtyard">Linq Apartments Courtyard</option>
+                        <option value="Praksis Gym">Praksis Gym</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
                     <label class="form-label" for="numLoaves">Number of Loaves *</label>
                     <select id="numLoaves" name="numLoaves" class="form-select" required>
                         <option value="">Select quantity</option>
-                        <option value="1">1 loaf</option>
-                        <option value="2">2 loaves</option>
-                        <option value="3">3 loaves</option>
-                        <option value="4">4 loaves</option>
+                        <option value="1">1 loaf - A$8.00</option>
+                        <option value="2">2 loaves - A$16.00</option>
+                        <option value="3">3 loaves - A$24.00</option>
+                        <option value="4">4 loaves - A$32.00</option>
                     </select>
                 </div>
                 
@@ -568,13 +577,22 @@
             const container = document.getElementById('messageContainer');
             
             if (type === 'success') {
-                // For success messages, show a more prominent confirmation with a close button
+                // For success messages, show payment instructions
                 container.innerHTML = `
                     <div class="${type}-message">
-                        <div style="font-weight: 600; margin-bottom: 8px;">✅ Order Confirmed!</div>
-                        <div style="margin-bottom: 12px;">${message}</div>
-                        <button onclick="closeOrderModal()" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-                            Close & Continue
+                        <div style="font-weight: 600; margin-bottom: 12px;">🍞 Order Received!</div>
+                        <div style="margin-bottom: 16px;">${message}</div>
+                        <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 16px; margin: 16px 0; font-family: monospace;">
+                            <div style="font-weight: 600; margin-bottom: 8px; color: #155724;">💳 Payment Required to Confirm Order:</div>
+                            <div style="margin-bottom: 4px;"><strong>PayID:</strong> jan.berkhout@up.me</div>                         
+                            <div style="margin-bottom: 4px;"><strong>Amount:</strong> A$<span id="orderTotal">0</span></div>
+                            <div style="margin-bottom: 12px;"><strong>Reference:</strong> <span id="orderReference">BreadOrder</span></div>
+                            <div style="font-size: 0.9rem; color: #721c24; background-color: #f8d7da; padding: 8px; border-radius: 4px;">
+                                ⚠️ Your order will only be confirmed once payment is received. Please include the reference number.
+                            </div>
+                        </div>
+                        <button onclick="closeOrderModal()" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; width: 100%;">
+                            I've Made Payment - Close
                         </button>
                     </div>
                 `;
@@ -604,12 +622,20 @@
             submitBtn.textContent = 'Placing Order...';
             
             const formData = new FormData(this);
+            const numLoaves = parseInt(formData.get('numLoaves'));
+            const totalAmount = numLoaves * 8; // $8 per loaf
+            
             const orderData = {
                 customerName: formData.get('customerName'),
                 contactInfo: formData.get('contactInfo'),
                 pickupDay: selectedPickupDate,
-                numLoaves: parseInt(formData.get('numLoaves'))
+                pickupLocation: formData.get('pickupLocation'),
+                numLoaves: numLoaves,
+                totalAmount: totalAmount
             };
+            
+            // Generate order reference
+            const orderRef = `BreadOrder-${selectedPickupDate}-${orderData.customerName.replace(/\s+/g, '')}`;
             
             try {
                 const response = await fetch('/.netlify/functions/create-order', {
@@ -621,9 +647,27 @@
                 });
 
                 if (response.ok) {
-                    // Refresh stock levels immediately after successful order
+                    // Update the payment details in the success message
+                    document.getElementById('orderTotal').textContent = totalAmount.toFixed(2);
+                    document.getElementById('orderReference').textContent = orderRef;
+                    
+                    showMessage(`${orderData.numLoaves} loaf(es) reserved for ${orderData.pickupDay} pickup at ${orderData.pickupLocation}.`);
+                    
+                    // Refresh stock levels after successful order
                     await fetchStockLevels(selectedPickupDate);
-                    showMessage(`Order confirmed! ${orderData.numLoaves} loaf(es) reserved for ${orderData.pickupDay} pickup. We'll contact you at ${orderData.contactInfo} with pickup details.`);
+                } else {
+                    const errorData = await response.json();
+                    showMessage(errorData.error || 'Sorry, there was an error placing your order.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Order submission error:', error);
+                showMessage('Sorry, there was an error placing your order. Please try again or contact us directly.', 'error');
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Place Preorder';
+        });
                 } else {
                     const errorData = await response.json();
                     showMessage(errorData.error || 'Sorry, there was an error placing your order.', 'error');

@@ -29,9 +29,13 @@ exports.handler = async function(event, context) {
             customerName: record.get('Customer Name') || '',
             contactInfo: record.get('Contact Info') || '',
             pickupDay: record.get('Pickup Day') || '',
+            pickupLocation: record.get('Pickup Location') || '',
             numLoaves: record.get('Number of Loaves') || 0,
+            totalAmount: record.get('Total Amount') || 0,
+            orderReference: record.get('Order Reference') || '',
             orderDate: record.get('Order Date') || '',
-            status: record.get('Status') || 'Pending'
+            status: record.get('Status') || 'Pending Payment',
+            paymentStatus: record.get('Payment Status') || 'Awaiting Payment'
         }));
 
         return {

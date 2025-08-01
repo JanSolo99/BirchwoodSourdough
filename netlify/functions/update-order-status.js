@@ -41,11 +41,11 @@ exports.handler = async function(event, context) {
     }
 
     // Validate status values
-    const validStatuses = ['Pending', 'Completed', 'Cancelled'];
+    const validStatuses = ['Pending Payment', 'Payment Received', 'Ready for Pickup', 'Completed', 'Cancelled'];
     if (!validStatuses.includes(status)) {
         return { 
             statusCode: 400, 
-            body: JSON.stringify({ error: 'Invalid status. Must be: Pending, Completed, or Cancelled' }) 
+            body: JSON.stringify({ error: 'Invalid status. Must be: Pending Payment, Payment Received, Ready for Pickup, Completed, or Cancelled' }) 
         };
     }
 

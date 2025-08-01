@@ -198,6 +198,21 @@
             font-weight: 600;
         }
 
+        .status-pending-payment {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-payment-received {
+            background-color: #cce7ff;
+            color: #004085;
+        }
+
+        .status-ready-for-pickup {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+
         .status-pending {
             background-color: #fff3cd;
             color: #856404;
@@ -282,7 +297,9 @@
                 <label for="statusFilter">Status:</label>
                 <select id="statusFilter" class="filter-select">
                     <option value="">All Status</option>
-                    <option value="Pending">Pending</option>
+                    <option value="Pending Payment">Pending Payment</option>
+                    <option value="Payment Received">Payment Received</option>
+                    <option value="Ready for Pickup">Ready for Pickup</option>
                     <option value="Completed">Completed</option>
                     <option value="Cancelled">Cancelled</option>
                 </select>
@@ -336,14 +353,14 @@
 
         function updateStats() {
             const totalOrders = allOrders.length;
-            const pendingOrders = allOrders.filter(order => order.status === 'Pending').length;
+            const pendingPayment = allOrders.filter(order => order.status === 'Pending Payment').length;
             const totalLoaves = allOrders.reduce((sum, order) => sum + (order.numLoaves || 0), 0);
             
             const today = new Date().toISOString().slice(0, 10);
             const todayOrders = allOrders.filter(order => order.pickupDay === today).length;
             
             document.getElementById('totalOrders').textContent = totalOrders;
-            document.getElementById('pendingOrders').textContent = pendingOrders;
+            document.getElementById('pendingOrders').textContent = pendingPayment;
             document.getElementById('totalLoaves').textContent = totalLoaves;
             document.getElementById('todayOrders').textContent = todayOrders;
         }
@@ -380,15 +397,26 @@
                     <div class="order-info">
                         <div class="order-customer">${escapeHtml(order.customerName)}</div>
                         <div class="order-details">
-                            ${order.numLoaves} loaves • Pickup: ${formatDate(order.pickupDay)}
+                            ${order.numLoaves} loaves • A$${(order.totalAmount || order.numLoaves * 8).toFixed(2)} • Pickup: ${formatDate(order.pickupDay)}
                         </div>
                         <div class="order-meta">
-                            Contact: ${escapeHtml(order.contactInfo)} • Ordered: ${formatDate(order.orderDate)}
+                            📍 ${escapeHtml(order.pickupLocation || 'Location TBD')} • 📞 ${escapeHtml(order.contactInfo)} • Ordered: ${formatDate(order.orderDate)}
                         </div>
+                        ${order.orderReference ? `<div class="order-meta" style="font-family: monospace; background-color: #f8f9fa; padding: 4px; border-radius: 4px; margin-top: 4px;">Ref: ${order.orderReference}</div>` : ''}
                     </div>
                     <div class="order-actions">
-                        <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
-                        ${order.status === 'Pending' ? `
+                        <span class="status-badge status-${order.status.toLowerCase().replace(' ', '-')}">${order.status}</span>
+                        ${order.status === 'Pending Payment' ? `
+                            <button onclick="updateOrderStatus('${order.id}', 'Payment Received')" class="btn btn-success" style="font-size: 0.8rem; padding: 6px 12px;">
+                                Confirm Payment
+                            </button>
+                        ` : ''}
+                        ${order.status === 'Payment Received' ? `
+                            <button onclick="updateOrderStatus('${order.id}', 'Ready for Pickup')" class="btn btn-warning" style="font-size: 0.8rem; padding: 6px 12px;">
+                                Ready
+                            </button>
+                        ` : ''}
+                        ${order.status === 'Ready for Pickup' ? `
                             <button onclick="updateOrderStatus('${order.id}', 'Completed')" class="btn btn-success" style="font-size: 0.8rem; padding: 6px 12px;">
                                 Complete
                             </button>
