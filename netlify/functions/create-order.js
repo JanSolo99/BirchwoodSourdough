@@ -85,11 +85,15 @@ exports.handler = async function(event, context) {
         // Fetch existing orders for the specific pickupDay with multiple filter attempts
         let records = [];
         
+        // Fetch existing orders for the specific pickupDay with multiple filter attempts
+        let records = [];
+        
         const filterAttempts = [
-            `AND({Status} = 'Pending', {Pickup Day} = '${pickupDay}')`,
-            `AND({Status} = "Pending", {Pickup Day} = "${pickupDay}")`,
-            `AND(Status = 'Pending', {Pickup Day} = '${pickupDay}')`,
-            `AND(Status = "Pending", {Pickup Day} = "${pickupDay}")`,
+            `AND(OR({Status} = 'Pending Payment', {Status} = 'Payment Received', {Status} = 'Ready for Pickup', {Status} = 'Confirmed'), {Pickup Day} = '${pickupDay}')`,
+            `AND(OR({Status} = "Pending Payment", {Status} = "Payment Received", {Status} = "Ready for Pickup", {Status} = "Confirmed"), {Pickup Day} = "${pickupDay}")`,
+            `AND(OR(Status = 'Pending Payment', Status = 'Payment Received', Status = 'Ready for Pickup', Status = 'Confirmed'), {Pickup Day} = '${pickupDay}')`,
+            `AND(OR(Status = "Pending Payment", Status = "Payment Received", Status = "Ready for Pickup", Status = "Confirmed"), {Pickup Day} = "${pickupDay}")`,
+            `{Pickup Day} = '${pickupDay}'` // Fallback: get all orders for the date
         ];
         
         for (let i = 0; i < filterAttempts.length; i++) {
@@ -115,7 +119,8 @@ exports.handler = async function(event, context) {
             records = allRecords.filter(record => {
                 const pickupDay_record = record.get('Pickup Day');
                 const status = record.get('Status');
-                return status === 'Pending' && pickupDay_record === pickupDay;
+                const isValidStatus = ['Pending Payment', 'Payment Received', 'Ready for Pickup', 'Confirmed', 'Pending'].includes(status);
+                return pickupDay_record === pickupDay && isValidStatus;
             });
             console.log(`Manual filter found ${records.length} existing orders for ${pickupDay}`);
         }
@@ -148,19 +153,7 @@ exports.handler = async function(event, context) {
         const orderReference = `BreadOrder-${pickupDay}-${customerName.replace(/\s+/g, '')}`;
         const calculatedTotal = totalAmount || (numLoaves * 8);
         
-        console.log('Creating Airtable record with fields:', {
-            "Customer Name": customerName,
-            "Contact Info": contactInfo,
-            "Pickup Day": pickupDay,
-            "Pickup Location": pickupLocation || 'TBD',
-            "Number of Loaves": numLoaves,
-            "Total Amount": calculatedTotal,
-            "Order Reference": orderReference,
-            "Order Date": new Date().toISOString().slice(0, 10),
-            "Status": "Pending Payment"
-        });
-        
-        // Create fields object - only include fields that exist
+        // Start with basic fields that we know exist
         const fields = {
             "Customer Name": customerName,
             "Contact Info": contactInfo,
@@ -170,7 +163,13 @@ exports.handler = async function(event, context) {
             "Status": "Pending Payment"
         };
 
-        // Add optional fields only if they have values
+        console.log('Creating Airtable record with basic fields:', fields);
+
+        const createResponse = await base('Orders').create([
+            {
+                "fields": fields
+            }
+        ]); Add optional fields only if they have values
         if (pickupLocation) {
             fields["Pickup Location"] = pickupLocation;
         }

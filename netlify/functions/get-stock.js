@@ -35,15 +35,16 @@ exports.handler = async function(event, context) {
     try {
         console.log(`Fetching orders for date: ${date}`);
         
-        // Try multiple filtering approaches to ensure compatibility
+        // Try multiple filtering approaches - count all confirmed orders, not just pending
         let records = [];
         
-        // Try different Airtable filter syntaxes
+        // Updated filters to include all relevant order statuses (not just Pending)
         const filterAttempts = [
-            `AND({Status} = 'Pending', {Pickup Day} = '${date}')`,
-            `AND({Status} = "Pending", {Pickup Day} = "${date}")`,
-            `AND(Status = 'Pending', {Pickup Day} = '${date}')`,
-            `AND(Status = "Pending", {Pickup Day} = "${date}")`,
+            `AND(OR({Status} = 'Pending Payment', {Status} = 'Payment Received', {Status} = 'Ready for Pickup', {Status} = 'Confirmed'), {Pickup Day} = '${date}')`,
+            `AND(OR({Status} = "Pending Payment", {Status} = "Payment Received", {Status} = "Ready for Pickup", {Status} = "Confirmed"), {Pickup Day} = "${date}")`,
+            `AND(OR(Status = 'Pending Payment', Status = 'Payment Received', Status = 'Ready for Pickup', Status = 'Confirmed'), {Pickup Day} = '${date}')`,
+            `AND(OR(Status = "Pending Payment", Status = "Payment Received", Status = "Ready for Pickup", Status = "Confirmed"), {Pickup Day} = "${date}")`,
+            `{Pickup Day} = '${date}'` // Fallback: get all orders for the date regardless of status
         ];
         
         for (let i = 0; i < filterAttempts.length; i++) {
@@ -69,7 +70,12 @@ exports.handler = async function(event, context) {
             records = allRecords.filter(record => {
                 const pickupDay = record.get('Pickup Day');
                 const status = record.get('Status');
-                return status === 'Pending' && pickupDay === date;
+                const isValidStatus = ['Pending Payment', 'Payment Received', 'Ready for Pickup', 'Confirmed', 'Pending'].includes(status);
+                const matchesDate = pickupDay === date;
+                
+                console.log(`Checking record: Status="${status}", PickupDay="${pickupDay}", ValidStatus=${isValidStatus}, MatchesDate=${matchesDate}`);
+                
+                return matchesDate && isValidStatus;
             });
             console.log(`Manual filter found ${records.length} matching orders`);
         }
