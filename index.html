@@ -68,6 +68,24 @@
             display: block;
         }
 
+        .admin-button {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .admin-button:hover {
+            background-color: #353535;
+        }
+
         /* Sections */
         .section {
             margin-bottom: 48px;
@@ -377,6 +395,7 @@
                 <span class="birchwood">BIRCHWOOD</span>
                 <span class="sourdough">SOURDOUGH</span>
             </h1>
+            <a href="admin.html" class="admin-button">Admin</a>
         </div>
     </header>
 
