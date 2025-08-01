@@ -147,7 +147,7 @@ exports.handler = async function(event, context) {
         }
 
         // Create the order record with backward compatibility
-        const orderReference = `BreadOrder-${pickupDay}-${customerName.replace(/\s+/g, '')}`;
+        const orderReference = `BreadOrder-${customerName.replace(/\s+/g, '')}`;
         const calculatedTotal = totalAmount || (numLoaves * 8);
         
         // Start with basic fields that we know exist
