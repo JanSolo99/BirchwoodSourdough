@@ -1,1 +1,1 @@
-Fix: Handle missing order status and set default status for new orders
+Fix: Correctly map Airtable fields to fix display issue

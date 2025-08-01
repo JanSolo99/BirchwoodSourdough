@@ -23,7 +23,18 @@ exports.handler = async (event, context) => {
     jwt.verify(token, JWT_SECRET);
 
     const records = await base('Orders').select({ view: 'Grid view' }).all();
-    const orders = records.map(record => ({ id: record.id, ...record.fields }));
+    const orders = records.map(record => ({
+      id: record.id,
+      customerName: record.fields['Customer Name'],
+      contactInfo: record.fields['Contact Info'],
+      pickupDay: record.fields['Pickup Day'],
+      pickupLocation: record.fields['Pickup Location'],
+      numLoaves: record.fields['Number of Loaves'],
+      totalAmount: record.fields['Total Amount'],
+      orderDate: record.fields['Order Date'],
+      status: record.fields['Status'],
+      orderReference: record.fields['Order Reference']
+    }));
 
     return {
       statusCode: 200,
