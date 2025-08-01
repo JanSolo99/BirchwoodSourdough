@@ -713,7 +713,7 @@
                         ${order.orderReference ? `<div class="order-meta" style="font-family: monospace; background-color: #f8f9fa; padding: 4px; border-radius: 4px; margin-top: 4px;">Ref: ${order.orderReference}</div>` : ''}
                     </div>
                     <div class="order-actions">
-                        <span class="status-badge status-${order.status.toLowerCase().replace(/\s+/g, '-')}">${order.status}</span>
+                        <span class="status-badge status-${(order.status || 'Pending Payment').toLowerCase().replace(/\s+/g, '-')}">${order.status || 'Pending Payment'}</span>
                         ${order.status === 'Pending Payment' ? `
                             <button onclick="updateOrderStatus('${order.id}', 'Payment Received')" class="btn btn-success" style="font-size: 0.8rem; padding: 6px 12px;">
                                 Confirm Payment

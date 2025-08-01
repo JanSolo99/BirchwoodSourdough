@@ -1,1 +1,1 @@
-Fix: Implement JWT authentication to resolve admin login loop
+Fix: Handle missing order status and set default status for new orders

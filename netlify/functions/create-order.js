@@ -157,7 +157,7 @@ exports.handler = async function(event, context) {
             "Pickup Day": pickupDay,
             "Number of Loaves": numLoaves,
             "Order Date": new Date().toISOString().slice(0, 10),
-            "Status": "Pending Payment"
+            "Status": "Pending Payment" // Set default status
         };
 
         // Add optional fields only if they have values
