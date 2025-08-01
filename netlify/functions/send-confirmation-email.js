@@ -25,8 +25,12 @@ exports.handler = async (event, context) => {
     console.log('Sending confirmation email to:', contactInfo);
     console.log('Order details:', { customerName, pickupDay, pickupLocation, numLoaves, totalAmount });
 
+    // Determine the from address - use verified domain if available, otherwise development domain
+    const fromAddress = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+    console.log('Using from address:', fromAddress);
+
     const emailResult = await resend.emails.send({
-      from: 'onboarding@resend.dev', // Using Resend's development domain - change to your verified domain later
+      from: fromAddress,
       to: [contactInfo],
       subject: 'Your Birchwood Sourdough Order Confirmation',
       html: `

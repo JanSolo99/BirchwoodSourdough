@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
     const resend = new Resend(RESEND_API_KEY);
     
     // Test sending a simple email
-    const testEmail = 'janberkhout@up.me'; // Using your PayID email for testing
+    const testEmail = 'jtedingvberkh@gmail.com'; // Using your registered Resend email
     
     console.log('Attempting to send test email...');
     
