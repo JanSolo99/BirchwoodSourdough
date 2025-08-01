@@ -512,8 +512,7 @@
     </div>
     <script>
         // Session management
-        let sessionToken = localStorage.getItem('adminSessionToken');
-        let sessionExpiry = localStorage.getItem('sessionExpiry');
+        let authToken = localStorage.getItem('adminAuthToken');
         let allOrders = [];
         let filteredOrders = [];
 
@@ -523,47 +522,11 @@
         });
 
         async function checkAuth() {
-            // Show loading screen initially
             showLoadingScreen();
-            
-            if (!sessionToken || !sessionExpiry) {
-                showLoginScreen();
-                return;
-            }
-
-            // Check if session has expired
-            if (new Date() > new Date(sessionExpiry)) {
-                clearSession();
-                showLoginScreen();
-                return;
-            }
-
-            // Verify session with server
-            try {
-                const response = await fetch('/.netlify/functions/admin-auth', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'verify',
-                        sessionToken: sessionToken
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.valid) {
-                    showAdminDashboard();
-                    updateSessionDisplay();
-                    loadOrders();
-                } else {
-                    clearSession();
-                    showLoginScreen();
-                }
-            } catch (error) {
-                console.error('Auth check failed:', error);
-                clearSession();
+            if (authToken) {
+                showAdminDashboard();
+                loadOrders();
+            } else {
                 showLoginScreen();
             }
         }
@@ -587,20 +550,11 @@
         }
 
         function clearSession() {
-            localStorage.removeItem('adminSessionToken');
-            localStorage.removeItem('sessionExpiry');
-            sessionToken = null;
-            sessionExpiry = null;
+            localStorage.removeItem('adminAuthToken');
+            authToken = null;
         }
 
-        function updateSessionDisplay() {
-            if (sessionExpiry) {
-                const expiry = new Date(sessionExpiry);
-                const now = new Date();
-                const hoursLeft = Math.max(0, Math.ceil((expiry - now) / (1000 * 60 * 60)));
-                document.getElementById('sessionExpiry').textContent = `Session expires in ${hoursLeft}h`;
-            }
-        }
+        
 
         // Login form handler
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -634,18 +588,13 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    sessionToken = data.sessionToken;
-                    sessionExpiry = data.expires;
-                    
-                    localStorage.setItem('adminSessionToken', sessionToken);
-                    localStorage.setItem('sessionExpiry', sessionExpiry);
+                    authToken = data.token;
+                    localStorage.setItem('adminAuthToken', authToken);
                     
                     showLoginMessage('Login successful! Loading dashboard...', 'success');
                     
-                    // Directly show dashboard without delay and server verification
                     setTimeout(() => {
                         showAdminDashboard();
-                        updateSessionDisplay();
                         loadOrders();
                     }, 500);
                 } else {
@@ -666,21 +615,6 @@
         }
 
         async function logout() {
-            try {
-                await fetch('/.netlify/functions/admin-auth', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'logout',
-                        sessionToken: sessionToken
-                    })
-                });
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
-
             clearSession();
             showLoginScreen();
             document.getElementById('password').value = '';
@@ -688,7 +622,7 @@
         }
 
         async function loadOrders() {
-            if (!sessionToken) {
+            if (!authToken) {
                 showLoginScreen();
                 return;
             }
@@ -699,7 +633,7 @@
                 
                 const response = await fetch('/.netlify/functions/admin-orders', {
                     headers: {
-                        'Authorization': `Bearer ${sessionToken}`
+                        'Authorization': `Bearer ${authToken}`
                     }
                 });
                 
@@ -801,7 +735,7 @@
         }
 
         async function updateOrderStatus(orderId, newStatus) {
-            if (!sessionToken) {
+            if (!authToken) {
                 showLoginScreen();
                 return;
             }
@@ -811,7 +745,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sessionToken}`
+                        'Authorization': `Bearer ${authToken}`
                     },
                     body: JSON.stringify({
                         orderId: orderId,
@@ -875,16 +809,7 @@
         document.getElementById('statusFilter').addEventListener('change', filterAndDisplayOrders);
         document.getElementById('dateFilter').addEventListener('change', filterAndDisplayOrders);
 
-        // Session expiry check every minute
-        setInterval(() => {
-            if (sessionExpiry && new Date() > new Date(sessionExpiry)) {
-                clearSession();
-                showLoginScreen();
-                alert('Your session has expired. Please log in again.');
-            } else {
-                updateSessionDisplay();
-            }
-        }, 60000);
+        
     </script>
 </body>
 </html>

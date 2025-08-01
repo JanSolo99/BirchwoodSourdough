@@ -1,0 +1,1 @@
+Fix: Implement JWT authentication to resolve admin login loop
