@@ -39,6 +39,7 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            margin-right: 10px;
         }
         button:hover {
             background-color: #0056b3;
@@ -53,6 +54,16 @@
         }
         .available { color: green; }
         .unavailable { color: red; }
+        .debug-output {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -90,7 +101,7 @@
         </div>
         <div class="form-group">
             <label for="orderDate">Pickup Date:</label>
-            <input type="text" id="orderDate" placeholder="2025-08-05">
+            <input type="text" id="orderDate" placeholder="2025-08-06">
         </div>
         <div class="form-group">
             <label for="numLoaves">Number of Loaves:</label>
@@ -161,7 +172,7 @@
                 
                 document.getElementById('stockOutput').innerHTML = `
                     <h4>Response (Status: ${response.status}):</h4>
-                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <div class="debug-output">${JSON.stringify(data, null, 2)}</div>
                 `;
                 
                 log(`Stock API response: ${JSON.stringify(data)}`);
@@ -186,7 +197,7 @@
                 
                 document.getElementById('stockOutput').innerHTML = `
                     <h4>Debug Response (Status: ${response.status}):</h4>
-                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <div class="debug-output">${JSON.stringify(data, null, 2)}</div>
                 `;
                 
                 log(`Debug API response: ${JSON.stringify(data)}`);
@@ -195,6 +206,8 @@
                 document.getElementById('stockOutput').innerHTML = `<div style="color: red;">Error: ${error.message}</div>`;
             }
         }
+
+        async function testOrderAPI() {
             const orderData = {
                 customerName: document.getElementById('customerName').value,
                 contactInfo: document.getElementById('contactInfo').value,
@@ -222,7 +235,7 @@
                 
                 document.getElementById('orderOutput').innerHTML = `
                     <h4>Response (Status: ${response.status}):</h4>
-                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <div class="debug-output">${JSON.stringify(data, null, 2)}</div>
                 `;
                 
                 log(`Order API response: ${JSON.stringify(data)}`);
@@ -255,12 +268,21 @@
             results += '<h4>API Endpoint Tests:</h4><ul>';
             
             try {
-                const stockResponse = await fetch('/.netlify/functions/get-stock?date=2025-08-05');
+                const stockResponse = await fetch('/.netlify/functions/get-stock?date=2025-08-06');
                 results += `<li style="color: ${stockResponse.ok ? 'green' : 'orange'}">Stock API: ${stockResponse.status} ${stockResponse.statusText}</li>`;
                 log(`Stock API endpoint: ${stockResponse.status} ${stockResponse.statusText}`);
             } catch (error) {
                 results += `<li style="color: red">Stock API: Error - ${error.message}</li>`;
                 log(`Stock API endpoint error: ${error.message}`);
+            }
+            
+            try {
+                const debugResponse = await fetch('/.netlify/functions/debug-stock?date=2025-08-06');
+                results += `<li style="color: ${debugResponse.ok ? 'green' : 'orange'}">Debug API: ${debugResponse.status} ${debugResponse.statusText}</li>`;
+                log(`Debug API endpoint: ${debugResponse.status} ${debugResponse.statusText}`);
+            } catch (error) {
+                results += `<li style="color: red">Debug API: Error - ${error.message}</li>`;
+                log(`Debug API endpoint error: ${error.message}`);
             }
             
             results += '</ul>';
