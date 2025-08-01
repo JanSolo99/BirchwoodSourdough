@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birchwood Sourdough - Order Management</title>
+    <style>
+        :root {
+            --primary-color: #212121;
+            --background-color: #e4ddca;
+            --heading-color: #002f00;
+            --body-color: #463939;
+            --white: #ffffff;
+            --border-radius: 8px;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--body-color);
+            line-height: 1.6;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 24px 0;
+        }
+
+        .site-title {
+            color: var(--heading-color);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--body-color);
+            font-size: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--body-color);
+        }
+
+        .filter-section {
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--heading-color);
+        }
+
+        .filter-input, .filter-select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: #353535;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: var(--white);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: var(--primary-color);
+        }
+
+        .orders-section {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 16px 20px;
+            font-weight: 600;
+        }
+
+        .order-item {
+            border-bottom: 1px solid #eee;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-customer {
+            font-weight: 600;
+            color: var(--heading-color);
+            margin-bottom: 4px;
+        }
+
+        .order-details {
+            font-size: 0.9rem;
+            color: var(--body-color);
+            margin-bottom: 4px;
+        }
+
+        .order-meta {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--body-color);
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 16px;
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--body-color);
+        }
+
+        @media (max-width: 768px) {
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .order-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .order-actions {
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="site-title">Birchwood Sourdough</h1>
+            <p class="subtitle">Order Management</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOrders">-</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingOrders">-</div>
+                <div class="stat-label">Pending Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalLoaves">-</div>
+                <div class="stat-label">Total Loaves</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayOrders">-</div>
+                <div class="stat-label">Today's Pickup</div>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="statusFilter">Status:</label>
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+
+                <label for="dateFilter">Pickup Date:</label>
+                <input type="date" id="dateFilter" class="filter-input">
+
+                <button onclick="loadOrders()" class="btn btn-primary">Refresh</button>
+            </div>
+        </div>
+
+        <div id="errorContainer"></div>
+
+        <div class="orders-section">
+            <div class="section-header">
+                Orders
+                <span style="float: right; font-weight: normal;" id="orderCount">Loading...</span>
+            </div>
+            <div id="ordersContainer">
+                <div class="loading">Loading orders...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allOrders = [];
+        let filteredOrders = [];
+
+        async function loadOrders() {
+            try {
+                showLoading();
+                clearError();
+                
+                const response = await fetch('/.netlify/functions/admin-orders');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load orders: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                allOrders = data.orders || [];
+                
+                updateStats();
+                filterAndDisplayOrders();
+                
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showError(`Failed to load orders: ${error.message}`);
+            }
+        }
+
+        function updateStats() {
+            const totalOrders = allOrders.length;
+            const pendingOrders = allOrders.filter(order => order.status === 'Pending').length;
+            const totalLoaves = allOrders.reduce((sum, order) => sum + (order.numLoaves || 0), 0);
+            
+            const today = new Date().toISOString().slice(0, 10);
+            const todayOrders = allOrders.filter(order => order.pickupDay === today).length;
+            
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('pendingOrders').textContent = pendingOrders;
+            document.getElementById('totalLoaves').textContent = totalLoaves;
+            document.getElementById('todayOrders').textContent = todayOrders;
+        }
+
+        function filterAndDisplayOrders() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            filteredOrders = allOrders.filter(order => {
+                const matchesStatus = !statusFilter || order.status === statusFilter;
+                const matchesDate = !dateFilter || order.pickupDay === dateFilter;
+                return matchesStatus && matchesDate;
+            });
+            
+            displayOrders(filteredOrders);
+        }
+
+        function displayOrders(orders) {
+            const container = document.getElementById('ordersContainer');
+            const countElement = document.getElementById('orderCount');
+            
+            countElement.textContent = `${orders.length} orders`;
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<div class="empty-state">No orders found matching the current filters.</div>';
+                return;
+            }
+            
+            // Sort orders by pickup date (newest first)
+            orders.sort((a, b) => new Date(b.pickupDay) - new Date(a.pickupDay));
+            
+            container.innerHTML = orders.map(order => `
+                <div class="order-item">
+                    <div class="order-info">
+                        <div class="order-customer">${escapeHtml(order.customerName)}</div>
+                        <div class="order-details">
+                            ${order.numLoaves} loaves • Pickup: ${formatDate(order.pickupDay)}
+                        </div>
+                        <div class="order-meta">
+                            Contact: ${escapeHtml(order.contactInfo)} • Ordered: ${formatDate(order.orderDate)}
+                        </div>
+                    </div>
+                    <div class="order-actions">
+                        <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
+                        ${order.status === 'Pending' ? `
+                            <button onclick="updateOrderStatus('${order.id}', 'Completed')" class="btn btn-success" style="font-size: 0.8rem; padding: 6px 12px;">
+                                Complete
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                const response = await fetch('/.netlify/functions/update-order-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        status: newStatus
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to update order: ${response.status}`);
+                }
+
+                // Refresh orders after successful update
+                await loadOrders();
+                
+            } catch (error) {
+                console.error('Error updating order:', error);
+                showError(`Failed to update order: ${error.message}`);
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('ordersContainer').innerHTML = '<div class="loading">Loading orders...</div>';
+            document.getElementById('orderCount').textContent = 'Loading...';
+        }
+
+        function showError(message) {
+            document.getElementById('errorContainer').innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
+        }
+
+        function clearError() {
+            document.getElementById('errorContainer').innerHTML = '';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-AU', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Event listeners
+        document.getElementById('statusFilter').addEventListener('change', filterAndDisplayOrders);
+        document.getElementById('dateFilter').addEventListener('change', filterAndDisplayOrders);
+
+        // Load orders on page load
+        document.addEventListener('DOMContentLoaded', loadOrders);
+    </script>
+</body>
+</html>
