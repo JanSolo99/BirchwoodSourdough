@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 // In production, store this in Netlify environment variables
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || 'c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd472634dfac71cd34ebc35d16ab7fb8a90c81f975113d6c7538dc69dd8de9077ec'; // Default: "admin123" - CHANGE THIS!
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '7fcf4ba391c48784edde599889d6e3f1e47a27db36ecc050cc92f259bfac38afad2c68a1ae804d77075e8fb722503f3eca2b2c1006ee6f6c7b7628cb45fffd1d'; // Default: "admin123" - CHANGE THIS!
 
 // Session storage (in production, use a proper database or Redis)
 const sessions = new Map();
