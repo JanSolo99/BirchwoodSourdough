@@ -32,12 +32,32 @@ exports.handler = async function(event, context) {
 
     const { customerName, contactInfo, pickupDay, pickupLocation, numLoaves, totalAmount } = orderData;
 
+    console.log('Received order data:', {
+        customerName,
+        contactInfo,
+        pickupDay,
+        pickupLocation,
+        numLoaves,
+        totalAmount
+    });
+
     // Validate required fields
-    if (!customerName || !contactInfo || !pickupDay || !pickupLocation || !numLoaves) {
+    if (!customerName || !contactInfo || !pickupDay || !numLoaves) {
+        console.log('Missing required fields:', {
+            customerName: !!customerName,
+            contactInfo: !!contactInfo,
+            pickupDay: !!pickupDay,
+            numLoaves: !!numLoaves
+        });
         return { 
             statusCode: 400, 
-            body: JSON.stringify({ error: 'Missing required fields' }) 
+            body: JSON.stringify({ error: 'Missing required fields: customerName, contactInfo, pickupDay, numLoaves' }) 
         };
+    }
+
+    // Make pickup location optional for now to prevent errors
+    if (!pickupLocation) {
+        console.log('Warning: No pickup location provided, using default');
     }
 
     // Validate date format
@@ -124,28 +144,51 @@ exports.handler = async function(event, context) {
             };
         }
 
-        // Create the order record
+        // Create the order record with backward compatibility
         const orderReference = `BreadOrder-${pickupDay}-${customerName.replace(/\s+/g, '')}`;
+        const calculatedTotal = totalAmount || (numLoaves * 8);
         
+        console.log('Creating Airtable record with fields:', {
+            "Customer Name": customerName,
+            "Contact Info": contactInfo,
+            "Pickup Day": pickupDay,
+            "Pickup Location": pickupLocation || 'TBD',
+            "Number of Loaves": numLoaves,
+            "Total Amount": calculatedTotal,
+            "Order Reference": orderReference,
+            "Order Date": new Date().toISOString().slice(0, 10),
+            "Status": "Pending Payment"
+        });
+        
+        // Create fields object - only include fields that exist
+        const fields = {
+            "Customer Name": customerName,
+            "Contact Info": contactInfo,
+            "Pickup Day": pickupDay,
+            "Number of Loaves": numLoaves,
+            "Order Date": new Date().toISOString().slice(0, 10),
+            "Status": "Pending Payment"
+        };
+
+        // Add optional fields only if they have values
+        if (pickupLocation) {
+            fields["Pickup Location"] = pickupLocation;
+        }
+        if (calculatedTotal) {
+            fields["Total Amount"] = calculatedTotal;
+        }
+        if (orderReference) {
+            fields["Order Reference"] = orderReference;
+        }
+
         const createResponse = await base('Orders').create([
             {
-                "fields": {
-                    "Customer Name": customerName,
-                    "Contact Info": contactInfo,
-                    "Pickup Day": pickupDay,
-                    "Pickup Location": pickupLocation,
-                    "Number of Loaves": numLoaves,
-                    "Total Amount": totalAmount || (numLoaves * 8),
-                    "Order Reference": orderReference,
-                    "Order Date": new Date().toISOString().slice(0, 10),
-                    "Status": "Pending Payment",
-                    "Payment Status": "Awaiting Payment"
-                }
+                "fields": fields
             }
         ]);
 
         console.log(`Order created successfully: ${createResponse[0].id}`);
-        console.log(`New order details: Customer=${customerName}, Loaves=${numLoaves}, Date=${pickupDay}, Location=${pickupLocation}, Amount=A$${totalAmount || (numLoaves * 8)}`);
+        console.log(`New order details: Customer=${customerName}, Loaves=${numLoaves}, Date=${pickupDay}, Location=${pickupLocation || 'TBD'}, Amount=A$${calculatedTotal}`);
 
         return {
             statusCode: 201,
@@ -157,12 +200,17 @@ exports.handler = async function(event, context) {
                 message: 'Order placed successfully - awaiting payment confirmation',
                 orderId: createResponse[0].id,
                 orderReference: orderReference,
-                totalAmount: totalAmount || (numLoaves * 8)
+                totalAmount: calculatedTotal
             })
         };
 
     } catch (error) {
         console.error('Error creating order:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         return {
             statusCode: 500,
             body: JSON.stringify({ 
