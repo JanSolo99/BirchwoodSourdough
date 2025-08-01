@@ -668,7 +668,7 @@
                 totalAmount: totalAmount
             };
             
-            const orderRef = `BreadOrder-${selectedPickupDate}-${orderData.customerName.replace(/\s+/g, '')}`;
+            const orderRef = `BreadOrder-${orderData.customerName.replace(/\s+/g, '')}`;
             
             try {
                 const response = await fetch('/.netlify/functions/create-order', {
