@@ -341,8 +341,7 @@
         }
     </style>
 </head>
-<body>
-    <header class="header">
+<body>    <header class="header">
         <div class="container">
             <h1 class="site-title">
                 <span class="birchwood">BIRCHWOOD</span>
@@ -394,8 +393,8 @@
             <div id="messageContainer"></div>
             
             <div class="availability-info">
-                <h4 style="margin-bottom: 12px;">Daily Availability (4 loaves max per day):</h4>
-                <div id="availabilityDisplay">Loading availability...</div>
+                <h4 style="margin-bottom: 12px;">Date-Specific Availability (4 loaves max per day):</h4>
+                <div id="availabilityDisplay">Select a date to see availability...</div>
             </div>
             
             <form id="orderForm">
@@ -410,13 +409,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="pickupDay">Pickup Day *</label>
-                    <select id="pickupDay" name="pickupDay" class="form-select" required>
-                        <option value="">Select a day</option>
-                        <option value="Tuesday">Tuesday</option>
-                        <option value="Wednesday">Wednesday</option>
-                        <option value="Thursday">Thursday</option>
-                    </select>
+                    <label class="form-label" for="pickupDay">Pickup Date *</label>
+                    <input type="text" id="pickupDay" name="pickupDay" class="form-input" placeholder="Select pickup date..." required readonly>
                 </div>
                 
                 <div class="form-group">
@@ -435,163 +429,90 @@
         </div>
     </div>
 
-    <script>
-        let dailyStock = {};
-
-        async function fetchStockLevels() {
-            try {
-                const response = await fetch('/.netlify/functions/get-stock');
-                if (response.ok) {
-                    dailyStock = await response.json();
-                    updateAvailabilityDisplay();
-                } else {
-                    console.error('Failed to fetch stock levels from the server.');
-                }
-            } catch (error) {
-                console.error('Error fetching stock levels:', error);
-            }
-        }
-
-        async function openOrderModal() {
-            document.getElementById('orderModal').style.display = 'block';
-            await fetchStockLevels();
-        }
-
-        function closeOrderModal() {
-            document.getElementById('orderModal').style.display = 'none';
-            clearForm();
-        }
-
-        function clearForm() {
-            document.getElementById('orderForm').reset();
-            document.getElementById('messageContainer').innerHTML = '';
-        }
-
-        function updateAvailabilityDisplay() {
-            const display = document.getElementById('availabilityDisplay');
-            let html = '';
-            
-            for (const [day, stock] of Object.entries(dailyStock)) {
-                const available = stock.max - stock.ordered;
-                const status = available > 0 ? 'available' : 'unavailable';
-                const statusText = available > 0 ? `${available} available` : 'Sold out';
-                
-                html += `<div class="${status}"><strong>${day}:</strong> ${statusText}</div>`;
-            }
-            
-            display.innerHTML = html;
-        }
-
-        function showMessage(message, type = 'success') {
-            const container = document.getElementById('messageContainer');
-            container.innerHTML = `<div class="${type}-message">${message}</div>`;
-            
-            if (type === 'success') {
-                setTimeout(() => {
-                    closeOrderModal();
-                }, 3000);
-            }
-        }
-
-        // Form submission
-        document.getElementById('orderForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Placing Order...';
-            
-            const formData = new FormData(this);
-            const orderData = {
-                customerName: formData.get('customerName'),
-                contactInfo: formData.get('contactInfo'),
-                pickupDay: formData.get('pickupDay'),
-                numLoaves: parseInt(formData.get('numLoaves'))
-            };
-            
-            try {
-                const response = await fetch('/.netlify/functions/create-order', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(orderData)
-                });
-
-                if (response.ok) {
-                    showMessage(`Order confirmed! ${orderData.numLoaves} loaf(es) reserved for ${orderData.pickupDay} pickup. We'll contact you at ${orderData.contactInfo} with pickup details.`);
-                    fetchStockLevels();
-                } else {
-                    const errorData = await response.json();
-                    showMessage(errorData.error || 'Sorry, there was an error placing your order.', 'error');
-                }
-                
-            } catch (error) {
-                showMessage('Sorry, there was an error placing your order. Please try again or contact us directly.', 'error');
-            }
-            
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Place Preorder';
-        });
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('orderModal');
-            if (event.target === modal) {
-                closeOrderModal();
-            }
-        }
-
-        // Newsletter form
-        document.querySelector('.newsletter-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for subscribing to our newsletter!');
-            this.reset();
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            fetchStockLevels();
-        });
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         let dailyStock = {};
         let selectedPickupDate = null;
+        let flatpickrInstance = null;
 
         async function fetchStockLevels(date) {
             try {
                 const response = await fetch(`/.netlify/functions/get-stock?date=${date}`);
                 if (response.ok) {
-                    dailyStock = await response.json();
+                    const stockData = await response.json();
+                    dailyStock = stockData;
                     updateAvailabilityDisplay();
                 } else {
                     console.error('Failed to fetch stock levels from the server.');
+                    updateAvailabilityDisplay('Error loading availability');
                 }
             } catch (error) {
                 console.error('Error fetching stock levels:', error);
+                updateAvailabilityDisplay('Error loading availability');
             }
         }
 
         async function openOrderModal() {
             document.getElementById('orderModal').style.display = 'block';
-            // Initial fetch for today's date or a default
+            
+            // Initialize Flatpickr
+            if (flatpickrInstance) {
+                flatpickrInstance.destroy();
+            }
+            
             const today = new Date();
-            const defaultDate = new Date(today.setDate(today.getDate() + (2 - today.getDay() + 7) % 7)); // Next Tuesday
-            flatpickr("#pickupDay", {
+            const nextAvailableDate = getNextAvailableDate(today);
+            
+            flatpickrInstance = flatpickr("#pickupDay", {
                 dateFormat: "Y-m-d",
                 minDate: "today",
                 enable: [
                     function(date) {
-                        // enable Tuesdays, Wednesdays, Thursdays
+                        // Enable only Tuesdays (2), Wednesdays (3), and Thursdays (4)
                         return (date.getDay() === 2 || date.getDay() === 3 || date.getDay() === 4);
                     }
                 ],
                 onChange: function(selectedDates, dateStr, instance) {
-                    selectedPickupDate = dateStr;
-                    fetchStockLevels(dateStr);
+                    if (dateStr) {
+                        selectedPickupDate = dateStr;
+                        fetchStockLevels(dateStr);
+                    }
                 }
-            }).setDate(defaultDate);
-            selectedPickupDate = defaultDate.toISOString().slice(0, 10);
+            });
+            
+            // Set default date and fetch stock
+            flatpickrInstance.setDate(nextAvailableDate);
+            selectedPickupDate = nextAvailableDate.toISOString().slice(0, 10);
             fetchStockLevels(selectedPickupDate);
+        }
+        
+        function getNextAvailableDate(fromDate) {
+            const date = new Date(fromDate);
+            const dayOfWeek = date.getDay();
+            
+            // Calculate days to add to get to next Tuesday, Wednesday, or Thursday
+            let daysToAdd = 0;
+            if (dayOfWeek === 0) daysToAdd = 2; // Sunday -> Tuesday
+            else if (dayOfWeek === 1) daysToAdd = 1; // Monday -> Tuesday
+            else if (dayOfWeek === 2) daysToAdd = 0; // Tuesday (if not past)
+            else if (dayOfWeek === 3) daysToAdd = 0; // Wednesday (if not past)
+            else if (dayOfWeek === 4) daysToAdd = 0; // Thursday (if not past)
+            else if (dayOfWeek === 5) daysToAdd = 4; // Friday -> next Tuesday
+            else if (dayOfWeek === 6) daysToAdd = 3; // Saturday -> next Tuesday
+            
+            // If it's today and we're past business hours, go to next available day
+            const now = new Date();
+            if (daysToAdd === 0 && date.toDateString() === now.toDateString()) {
+                // If it's after 6 PM today, move to next available day
+                if (now.getHours() >= 18) {
+                    if (dayOfWeek === 2) daysToAdd = 1; // Tuesday -> Wednesday
+                    else if (dayOfWeek === 3) daysToAdd = 1; // Wednesday -> Thursday
+                    else if (dayOfWeek === 4) daysToAdd = 5; // Thursday -> next Tuesday
+                }
+            }
+            
+            date.setDate(date.getDate() + daysToAdd);
+            return date;
         }
 
         function closeOrderModal() {
@@ -603,11 +524,18 @@
             document.getElementById('orderForm').reset();
             document.getElementById('messageContainer').innerHTML = '';
             selectedPickupDate = null;
+            if (flatpickrInstance) {
+                flatpickrInstance.clear();
+            }
         }
 
-        function updateAvailabilityDisplay() {
+        function updateAvailabilityDisplay(errorMessage = null) {
             const display = document.getElementById('availabilityDisplay');
-            let html = '';
+            
+            if (errorMessage) {
+                display.innerHTML = `<div style="color: #dc3545;">${errorMessage}</div>`;
+                return;
+            }
             
             if (selectedPickupDate && dailyStock[selectedPickupDate]) {
                 const stock = dailyStock[selectedPickupDate];
@@ -615,12 +543,12 @@
                 const status = available > 0 ? 'available' : 'unavailable';
                 const statusText = available > 0 ? `${available} available` : 'Sold out';
                 
-                html += `<div class="${status}"><strong>${selectedPickupDate}:</strong> ${statusText}</div>`;
+                display.innerHTML = `<div class="${status}"><strong>${selectedPickupDate}:</strong> ${statusText}</div>`;
+            } else if (selectedPickupDate) {
+                display.innerHTML = `<div class="available"><strong>${selectedPickupDate}:</strong> 4 available</div>`;
             } else {
-                html = 'Select a date to see availability.';
+                display.innerHTML = 'Select a date to see availability...';
             }
-            
-            display.innerHTML = html;
         }
 
         function showMessage(message, type = 'success') {
@@ -638,6 +566,11 @@
         document.getElementById('orderForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!selectedPickupDate) {
+                showMessage('Please select a pickup date.', 'error');
+                return;
+            }
+            
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Placing Order...';
@@ -646,7 +579,7 @@
             const orderData = {
                 customerName: formData.get('customerName'),
                 contactInfo: formData.get('contactInfo'),
-                pickupDay: selectedPickupDate, // Use the selected date
+                pickupDay: selectedPickupDate,
                 numLoaves: parseInt(formData.get('numLoaves'))
             };
             
@@ -668,6 +601,7 @@
                 }
                 
             } catch (error) {
+                console.error('Order submission error:', error);
                 showMessage('Sorry, there was an error placing your order. Please try again or contact us directly.', 'error');
             }
             
@@ -689,8 +623,6 @@
             alert('Thank you for subscribing to our newsletter!');
             this.reset();
         });
-
-        // No need to fetch stock on DOMContentLoaded anymore, it's done when modal opens
     </script>
 </body>
 </html>
