@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Birchwood Sourdough - Order Management</title>
+    <title>Birchwood Sourdough - Admin</title>
     <style>
         :root {
             --primary-color: #212121;
@@ -36,22 +36,145 @@
             margin: 0 auto;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 32px;
-            padding: 24px 0;
+        /* Login Page Styles */
+        .login-container {
+            max-width: 400px;
+            margin: 10vh auto;
+            background: var(--white);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
 
-        .site-title {
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-title {
             color: var(--heading-color);
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 700;
             margin-bottom: 8px;
         }
 
-        .subtitle {
+        .login-subtitle {
+            color: var(--body-color);
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--heading-color);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--border-radius);  
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #353535;
+        }
+
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+        }
+
+        /* Admin Dashboard Styles */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding: 24px 0;
+        }
+
+        .header-left h1 {
+            color: var(--heading-color);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .header-left p {
             color: var(--body-color);
             font-size: 1rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .session-info {
+            font-size: 0.85rem;
+            color: var(--body-color);
+            text-align: right;
+        }
+
+        .btn-logout {
+            background-color: var(--danger-color);
+            color: var(--white);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .btn-logout:hover {
+            background-color: #c82333;
         }
 
         .stats-grid {
@@ -109,33 +232,10 @@
             font-size: 0.9rem;
         }
 
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: var(--border-radius);
+        .btn-small {
+            padding: 8px 16px;  
             font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: var(--white);
-        }
-
-        .btn-primary:hover {
-            background-color: #353535;
-        }
-
-        .btn-success {
-            background-color: var(--success-color);
-            color: var(--white);
-        }
-
-        .btn-warning {
-            background-color: var(--warning-color);
-            color: var(--primary-color);
+            width: auto;
         }
 
         .orders-section {
@@ -150,6 +250,9 @@
             color: var(--white);
             padding: 16px 20px;
             font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .order-item {
@@ -234,21 +337,27 @@
             color: var(--body-color);
         }
 
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 16px;
-            border-radius: var(--border-radius);
-            margin-bottom: 16px;
-        }
-
         .empty-state {
             text-align: center;
             padding: 40px 20px;
             color: var(--body-color);
         }
 
+        .hidden {
+            display: none !important;
+        }
+
         @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .header-right {
+                justify-content: space-between;
+            }
+
             .filter-group {
                 flex-direction: column;
                 align-items: stretch;
@@ -267,10 +376,46 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 class="site-title">Birchwood Sourdough</h1>
-            <p class="subtitle">Order Management</p>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-header">
+            <h1 class="login-title">🍞 Admin Login</h1>
+            <p class="login-subtitle">Birchwood Sourdough Order Management</p>
+        </div>
+
+        <div id="loginMessage"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-input" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary" id="loginBtn">
+                Sign In
+            </button>
+        </form>
+
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.8rem; color: #666; text-align: center;">
+            🔒 This page is protected. Your session will expire in 24 hours.
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="container hidden">
+        <div class="admin-header">
+            <div class="header-left">
+                <h1>Birchwood Sourdough</h1>
+                <p>Order Management Dashboard</p>
+            </div>
+            <div class="header-right">
+                <div class="session-info">
+                    <div>Logged in as Admin</div>
+                    <div id="sessionExpiry"></div>
+                </div>
+                <button onclick="logout()" class="btn btn-logout btn-small">
+                    Logout
+                </button>
+            </div>
         </div>
 
         <div class="stats-grid">
@@ -307,7 +452,7 @@
                 <label for="dateFilter">Pickup Date:</label>
                 <input type="date" id="dateFilter" class="filter-input">
 
-                <button onclick="loadOrders()" class="btn btn-primary">Refresh</button>
+                <button onclick="loadOrders()" class="btn btn-primary btn-small">Refresh</button>
             </div>
         </div>
 
@@ -315,25 +460,200 @@
 
         <div class="orders-section">
             <div class="section-header">
-                Orders
-                <span style="float: right; font-weight: normal;" id="orderCount">Loading...</span>
+                <span>Orders</span>
+                <span id="orderCount">Loading...</span>
             </div>
             <div id="ordersContainer">
                 <div class="loading">Loading orders...</div>
             </div>
         </div>
     </div>
-
     <script>
+        // Session management
+        let sessionToken = localStorage.getItem('adminSessionToken');
+        let sessionExpiry = localStorage.getItem('sessionExpiry');
         let allOrders = [];
         let filteredOrders = [];
 
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+        });
+
+        async function checkAuth() {
+            if (!sessionToken || !sessionExpiry) {
+                showLoginScreen();
+                return;
+            }
+
+            // Check if session has expired
+            if (new Date() > new Date(sessionExpiry)) {
+                clearSession();
+                showLoginScreen();
+                return;
+            }
+
+            // Verify session with server
+            try {
+                const response = await fetch('/.netlify/functions/admin-auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'verify',
+                        sessionToken: sessionToken
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.valid) {
+                    showAdminDashboard();
+                    updateSessionDisplay();
+                    loadOrders();
+                } else {
+                    clearSession();
+                    showLoginScreen();
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                clearSession();
+                showLoginScreen();
+            }
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+        }
+
+        function showAdminDashboard() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+        }
+
+        function clearSession() {
+            localStorage.removeItem('adminSessionToken');
+            localStorage.removeItem('sessionExpiry');
+            sessionToken = null;
+            sessionExpiry = null;
+        }
+
+        function updateSessionDisplay() {
+            if (sessionExpiry) {
+                const expiry = new Date(sessionExpiry);
+                const now = new Date();
+                const hoursLeft = Math.max(0, Math.ceil((expiry - now) / (1000 * 60 * 60)));
+                document.getElementById('sessionExpiry').textContent = `Session expires in ${hoursLeft}h`;
+            }
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const messageContainer = document.getElementById('loginMessage');
+            
+            if (!password) {
+                showLoginMessage('Please enter a password', 'error');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing In...';
+            messageContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('/.netlify/functions/admin-auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'login',
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    sessionToken = data.sessionToken;
+                    sessionExpiry = data.expires;
+                    
+                    localStorage.setItem('adminSessionToken', sessionToken);
+                    localStorage.setItem('sessionExpiry', sessionExpiry);
+                    
+                    showLoginMessage('Login successful! Loading dashboard...', 'success');
+                    
+                    setTimeout(() => {
+                        showAdminDashboard();
+                        updateSessionDisplay();
+                        loadOrders();
+                    }, 1000);
+                } else {
+                    showLoginMessage(data.error || 'Login failed. Please check your password.', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showLoginMessage('Connection error. Please try again.', 'error');
+            }
+
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Sign In';
+        });
+
+        function showLoginMessage(message, type) {
+            const container = document.getElementById('loginMessage');
+            container.innerHTML = `<div class="${type}-message">${message}</div>`;
+        }
+
+        async function logout() {
+            try {
+                await fetch('/.netlify/functions/admin-auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'logout',
+                        sessionToken: sessionToken
+                    })
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+
+            clearSession();
+            showLoginScreen();
+            document.getElementById('password').value = '';
+            document.getElementById('loginMessage').innerHTML = '';
+        }
+
         async function loadOrders() {
+            if (!sessionToken) {
+                showLoginScreen();
+                return;
+            }
+
             try {
                 showLoading();
                 clearError();
                 
-                const response = await fetch('/.netlify/functions/admin-orders');
+                const response = await fetch('/.netlify/functions/admin-orders', {
+                    headers: {
+                        'Authorization': `Bearer ${sessionToken}`
+                    }
+                });
+                
+                if (response.status === 401) {
+                    clearSession();
+                    showLoginScreen();
+                    return;
+                }
                 
                 if (!response.ok) {
                     throw new Error(`Failed to load orders: ${response.status} ${response.statusText}`);
@@ -397,7 +717,7 @@
                     <div class="order-info">
                         <div class="order-customer">${escapeHtml(order.customerName)}</div>
                         <div class="order-details">
-                            ${order.numLoaves} loaves • A$${(order.totalAmount || order.numLoaves * 8).toFixed(2)} • Pickup: ${formatDate(order.pickupDay)}
+                            ${order.numLoaves} loaves • A$${(order.totalAmount || order.numLoaves * 9).toFixed(2)} • Pickup: ${formatDate(order.pickupDay)}
                         </div>
                         <div class="order-meta">
                             📍 ${escapeHtml(order.pickupLocation || 'Location TBD')} • 📞 ${escapeHtml(order.contactInfo)} • Ordered: ${formatDate(order.orderDate)}
@@ -405,7 +725,7 @@
                         ${order.orderReference ? `<div class="order-meta" style="font-family: monospace; background-color: #f8f9fa; padding: 4px; border-radius: 4px; margin-top: 4px;">Ref: ${order.orderReference}</div>` : ''}
                     </div>
                     <div class="order-actions">
-                        <span class="status-badge status-${order.status.toLowerCase().replace(' ', '-')}">${order.status}</span>
+                        <span class="status-badge status-${order.status.toLowerCase().replace(/\s+/g, '-')}">${order.status}</span>
                         ${order.status === 'Pending Payment' ? `
                             <button onclick="updateOrderStatus('${order.id}', 'Payment Received')" class="btn btn-success" style="font-size: 0.8rem; padding: 6px 12px;">
                                 Confirm Payment
@@ -427,17 +747,29 @@
         }
 
         async function updateOrderStatus(orderId, newStatus) {
+            if (!sessionToken) {
+                showLoginScreen();
+                return;
+            }
+
             try {
                 const response = await fetch('/.netlify/functions/update-order-status', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken}`
                     },
                     body: JSON.stringify({
                         orderId: orderId,
                         status: newStatus
                     })
                 });
+
+                if (response.status === 401) {
+                    clearSession();
+                    showLoginScreen();
+                    return;
+                }
 
                 if (!response.ok) {
                     throw new Error(`Failed to update order: ${response.status}`);
@@ -458,7 +790,9 @@
         }
 
         function showError(message) {
-            document.getElementById('errorContainer').innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
+            document.getElementById('errorContainer').innerHTML = `
+                <div class="error-message">${escapeHtml(message)}</div>
+            `;
         }
 
         function clearError() {
@@ -487,8 +821,16 @@
         document.getElementById('statusFilter').addEventListener('change', filterAndDisplayOrders);
         document.getElementById('dateFilter').addEventListener('change', filterAndDisplayOrders);
 
-        // Load orders on page load
-        document.addEventListener('DOMContentLoaded', loadOrders);
+        // Session expiry check every minute
+        setInterval(() => {
+            if (sessionExpiry && new Date() > new Date(sessionExpiry)) {
+                clearSession();
+                showLoginScreen();
+                alert('Your session has expired. Please log in again.');
+            } else {
+                updateSessionDisplay();
+            }
+        }, 60000);
     </script>
 </body>
 </html>

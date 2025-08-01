@@ -1,10 +1,35 @@
 const Airtable = require('airtable');
+const { isValidSession } = require('./admin-auth');
 
 exports.handler = async function(event, context) {
+    // Enable CORS
+    const headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    };
+
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 200, headers };
+    }
+
     if (event.httpMethod !== 'POST') {
         return { 
             statusCode: 405, 
+            headers,
             body: JSON.stringify({ error: 'Method Not Allowed' }) 
+        };
+    }
+
+    // Check authentication
+    const sessionToken = event.headers.authorization?.replace('Bearer ', '');
+    
+    if (!sessionToken || !isValidSession(sessionToken)) {
+        return {
+            statusCode: 401,
+            headers,
+            body: JSON.stringify({ error: 'Unauthorized - Invalid or expired session' })
         };
     }
 
@@ -66,10 +91,7 @@ exports.handler = async function(event, context) {
 
         return {
             statusCode: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            headers,
             body: JSON.stringify({ 
                 message: 'Order status updated successfully',
                 orderId: orderId,
@@ -81,6 +103,7 @@ exports.handler = async function(event, context) {
         console.error('Error updating order status:', error);
         return {
             statusCode: 500,
+            headers,
             body: JSON.stringify({ 
                 error: 'Failed to update order status',
                 details: error.message 

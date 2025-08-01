@@ -1,6 +1,30 @@
 const Airtable = require('airtable');
+const { isValidSession } = require('./admin-auth');
 
 exports.handler = async function(event, context) {
+    // Enable CORS
+    const headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    };
+
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 200, headers };
+    }
+
+    // Check authentication
+    const sessionToken = event.headers.authorization?.replace('Bearer ', '') || 
+                        event.queryStringParameters?.sessionToken;
+
+    if (!sessionToken || !isValidSession(sessionToken)) {
+        return {
+            statusCode: 401,
+            headers,
+            body: JSON.stringify({ error: 'Unauthorized - Invalid or expired session' })
+        };
+    }
     const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = process.env;
     
     if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID) {
@@ -40,10 +64,7 @@ exports.handler = async function(event, context) {
 
         return {
             statusCode: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            headers,
             body: JSON.stringify({ 
                 orders: orders,
                 totalCount: orders.length 
@@ -54,6 +75,7 @@ exports.handler = async function(event, context) {
         console.error('Error fetching orders:', error);
         return {
             statusCode: 500,
+            headers,
             body: JSON.stringify({ 
                 error: 'Failed to fetch orders',
                 details: error.message 
