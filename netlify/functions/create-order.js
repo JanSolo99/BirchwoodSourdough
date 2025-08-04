@@ -203,6 +203,30 @@ exports.handler = async function(event, context) {
           console.error('Error sending confirmation email:', emailError);
         }
 
+        // Send confirmation SMS
+        try {
+          const smsResponse = await fetch('/.netlify/functions/send-confirmation-sms', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              customerName,
+              contactInfo,
+              pickupDay,
+              pickupLocation,
+              numLoaves,
+              totalAmount: calculatedTotal,
+              orderReference
+            })
+          });
+          if (!smsResponse.ok) {
+            console.error('Failed to send confirmation SMS:', await smsResponse.text());
+          }
+        } catch (smsError) {
+          console.error('Error sending confirmation SMS:', smsError);
+        }
+
         console.log(`Order created successfully: ${createResponse[0].id}`);
         console.log(`New order details: Customer=${customerName}, Loaves=${numLoaves}, Date=${pickupDay}, Location=${pickupLocation || 'TBD'}, Amount=A$${calculatedTotal}`);
 

@@ -33,6 +33,14 @@ exports.handler = async (event, context) => {
 
     const { orderId, status } = JSON.parse(event.body);
 
+    // First, get the order details before updating
+    let orderRecord;
+    try {
+      orderRecord = await base('Orders').find(orderId);
+    } catch (error) {
+      return { statusCode: 404, headers, body: JSON.stringify({ error: 'Order not found' }) };
+    }
+
     await base('Orders').update([
       {
         id: orderId,
@@ -41,6 +49,33 @@ exports.handler = async (event, context) => {
         },
       },
     ]);
+
+    // If status is being changed to "Payment Received" or "Confirmed", send SMS
+    if (status === 'Payment Received' || status === 'Confirmed') {
+      try {
+        const orderData = orderRecord.fields;
+        const smsResponse = await fetch('/.netlify/functions/send-payment-confirmation-sms', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            customerName: orderData['Customer Name'],
+            contactInfo: orderData['Contact Info'],
+            pickupDay: orderData['Pickup Day'],
+            pickupLocation: orderData['Pickup Location'],
+            numLoaves: orderData['Number of Loaves'],
+            orderReference: orderData['Order Reference']
+          })
+        });
+        
+        if (!smsResponse.ok) {
+          console.error('Failed to send payment confirmation SMS:', await smsResponse.text());
+        }
+      } catch (smsError) {
+        console.error('Error sending payment confirmation SMS:', smsError);
+      }
+    }
 
     return {
       statusCode: 200,
