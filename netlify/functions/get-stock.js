@@ -30,59 +30,42 @@ exports.handler = async function(event, context) {
         };
     }
 
-    // Get stock limits for the date
-    let stockForDate = { max: 4, ordered: 0 }; // Default values
+    // Get stock limits for the date - using hardcoded value since Stock table doesn't exist
+    let stockForDate = { max: 4, ordered: 0 }; // Default: 4 loaves max per day
     
-    try {
-        const stockRecords = await base('Stock').select({
-            filterByFormula: `{Date} = '${date}'`
-        }).firstPage();
-
-        if (stockRecords.length > 0) {
-            stockForDate.max = stockRecords[0].fields['Max Loaves'] || 4;
-        }
-        console.log(`Max loaves for ${date}: ${stockForDate.max}`);
-    } catch (error) {
-        console.log('Error fetching stock limits, using default:', error.message);
-    }
+    console.log(`Max loaves for ${date}: ${stockForDate.max} (using default - no Stock table)`);
 
     try {
         console.log(`Fetching orders for date: ${date}`);
         
-        // Simple approach: get all orders for the specific date
-        let records = [];
+        // Get all orders and filter manually (more reliable than Airtable formula)
+        console.log('Getting all orders and filtering manually for better reliability');
+        const allRecords = await base('Orders').select().all();
+        console.log(`Total records in Orders table: ${allRecords.length}`);
         
-        try {
-            // Try with simple date filter first
-            records = await base('Orders').select({
-                filterByFormula: `{Pickup Day} = '${date}'`
-            }).all();
-            console.log(`Found ${records.length} orders for date ${date}`);
-        } catch (error) {
-            console.log(`Date filter failed: ${error.message}`);
-            
-            // If that fails, get all records and filter manually
-            console.log('Falling back to manual filtering');
-            const allRecords = await base('Orders').select().all();
-            console.log(`Total records in Orders table: ${allRecords.length}`);
-            
-            // Debug: show all pickup days in the database
-            console.log('All pickup days in database:');
-            allRecords.forEach((record, i) => {
-                const pickupDay = record.get('Pickup Day');
-                const customerName = record.get('Customer Name');
-                const status = record.get('Status');
-                console.log(`  Record ${i + 1}: Customer=${customerName}, PickupDay="${pickupDay}", Status="${status}"`);
-            });
-            
-            records = allRecords.filter(record => {
-                const pickupDay = record.get('Pickup Day');
-                const matches = pickupDay === date;
-                console.log(`Checking: "${pickupDay}" === "${date}" ? ${matches}`);
-                return matches;
-            });
-            console.log(`Manual filter found ${records.length} matching orders`);
-        }
+        // Debug: show all pickup days in the database
+        console.log('All pickup days in database:');
+        allRecords.forEach((record, i) => {
+            const pickupDay = record.get('Pickup Day');
+            const customerName = record.get('Customer Name');
+            const status = record.get('Status');
+            const loaves = record.get('Number of Loaves');
+            console.log(`  Record ${i + 1}: Customer="${customerName}", PickupDay="${pickupDay}", Status="${status}", Loaves=${loaves}`);
+        });
+        
+        // Filter records for the specific date
+        const records = allRecords.filter(record => {
+            const pickupDay = record.get('Pickup Day');
+            // Handle both string dates and Date objects
+            let pickupDateStr = pickupDay;
+            if (pickupDay instanceof Date) {
+                pickupDateStr = pickupDay.toISOString().slice(0, 10);
+            }
+            const matches = pickupDateStr === date;
+            console.log(`Checking: "${pickupDateStr}" === "${date}" ? ${matches}`);
+            return matches;
+        });
+        console.log(`Manual filter found ${records.length} matching orders for ${date}`);
 
         // Count loaves from confirmed/paid orders for the date
         records.forEach((record, index) => {
