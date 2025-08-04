@@ -387,6 +387,51 @@
             border-radius: var(--border-radius);
             margin-bottom: 16px;
         }
+
+        /* Feedback Section */
+        .feedback-section {
+            padding: 48px 0;
+            background-color: var(--background-color);
+        }
+
+        .feedback-container {
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+        }
+
+        .feedback-scroll {
+            display: flex;
+            gap: 24px;
+            animation: scroll 30s linear infinite;
+        }
+
+        .feedback-card {
+            background-color: var(--white);
+            border-radius: var(--card-border-radius);
+            padding: 24px;
+            min-width: 300px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .feedback-author {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .feedback-rating {
+            color: orange;
+            margin-bottom: 8px;
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
     </style>
 </head><body>
     <header class="header">
@@ -417,6 +462,15 @@
             </div>
         </section>
     </main>
+
+    <section class="feedback-section">
+        <div class="container">
+            <h2 class="section-title">What Our Customers Say</h2>
+            <div class="feedback-container">
+                <div class="feedback-scroll" id="feedback-scroll"></div>
+            </div>
+        </div>
+    </section>
 
     <section class="newsletter">
         <div class="container">
@@ -748,6 +802,61 @@
             alert('Thank you for subscribing to our newsletter!');
             this.reset();
         });
+
+        // Fetch and display feedback
+        async function fetchFeedback() {
+            try {
+                const response = await fetch('/.netlify/functions/get-feedback');
+                if (response.ok) {
+                    const feedbackData = await response.json();
+                    const feedbackScroll = document.getElementById('feedback-scroll');
+                    
+                    if (feedbackData.length > 0) {
+                        feedbackData.forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = 'feedback-card';
+                            
+                            let stars = '';
+                            for (let i = 0; i < item.rating; i++) {
+                                stars += '&#9733;';
+                            }
+                            
+                            card.innerHTML = `
+                                <div class="feedback-author">${item.name}</div>
+                                <div class="feedback-rating">${stars}</div>
+                                <p>${item.feedback}</p>
+                            `;
+                            feedbackScroll.appendChild(card);
+                        });
+
+                        // Duplicate feedback items for seamless scrolling
+                        feedbackData.forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = 'feedback-card';
+                            
+                            let stars = '';
+                            for (let i = 0; i < item.rating; i++) {
+                                stars += '&#9733;';
+                            }
+                            
+                            card.innerHTML = `
+                                <div class="feedback-author">${item.name}</div>
+                                <div class="feedback-rating">${stars}</div>
+                                <p>${item.feedback}</p>
+                            `;
+                            feedbackScroll.appendChild(card);
+                        });
+                    } else {
+                        document.querySelector('.feedback-section').style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching feedback:', error);
+                document.querySelector('.feedback-section').style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchFeedback);
     </script>
 </body>
 </html>
