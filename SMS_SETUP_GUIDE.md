@@ -44,21 +44,19 @@ Your bread preorder app now supports SMS confirmations using **Australian SMS pr
 1. Login to Cellcast dashboard
 2. Go to "API Connect" → "API Key"
 3. Click "Activate Key" to generate credentials
-4. Note down your **API Key** and **API Secret**
+4. Note down your **APPKEY**
 
 ### 3. Configure Environment Variables
 
 #### In Netlify:
 Go to Site settings > Environment variables and add:
 ```
-CELLCAST_API_KEY=your_api_key_here
-CELLCAST_API_SECRET=your_api_secret_here
+CELLCAST_APPKEY=your_app_key_here
 ```
 
 #### For Local Development (.env file):
 ```
-CELLCAST_API_KEY=your_api_key_here
-CELLCAST_API_SECRET=your_api_secret_here
+CELLCAST_APPKEY=your_app_key_here
 ```
 
 ### 4. Install Dependencies

@@ -1,8 +1,7 @@
 const axios = require('axios');
 
-const CELLCAST_API_KEY = process.env.CELLCAST_API_KEY;
-const CELLCAST_API_SECRET = process.env.CELLCAST_API_SECRET;
-const CELLCAST_API_URL = 'https://cellcast.com.au/api/v3/sms';
+const CELLCAST_APPKEY = process.env.CELLCAST_APPKEY;
+const CELLCAST_API_URL = 'https://cellcast.com.au/api/v3/send-sms';
 
 // Helper function to format phone number for Australian mobile
 function formatPhoneNumber(phone) {
@@ -56,7 +55,7 @@ exports.handler = async (event, context) => {
     }
 
     // Check if we have Cellcast credentials
-    if (!CELLCAST_API_KEY || !CELLCAST_API_SECRET) {
+    if (!CELLCAST_APPKEY) {
       console.error('Cellcast credentials not configured');
       return { 
         statusCode: 200, 
@@ -93,11 +92,8 @@ exports.handler = async (event, context) => {
 
     const response = await axios.post(CELLCAST_API_URL, smsData, {
       headers: {
-        'Content-Type': 'application/json'
-      },
-      auth: {
-        username: CELLCAST_API_KEY,
-        password: CELLCAST_API_SECRET
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CELLCAST_APPKEY}`
       }
     });
 
