@@ -610,6 +610,8 @@
         
         function getNextAvailableDate(fromDate) {
             const date = new Date(fromDate);
+            date.setHours(date.getHours() + 36);
+
             const dayOfWeek = date.getDay();
             
             // Calculate days to add to get to next Tuesday, Wednesday, or Thursday
@@ -625,8 +627,8 @@
             // If it's today and we're past business hours, go to next available day
             const now = new Date();
             if (daysToAdd === 0 && date.toDateString() === now.toDateString()) {
-                // If it's after 6 PM today, move to next available day
-                if (now.getHours() >= 18) {
+                // If it's after 8 AM today, move to next available day
+                if (now.getHours() >= 8) {
                     if (dayOfWeek === 2) daysToAdd = 1; // Tuesday -> Wednesday
                     else if (dayOfWeek === 3) daysToAdd = 1; // Wednesday -> Thursday
                     else if (dayOfWeek === 4) daysToAdd = 5; // Thursday -> next Tuesday
@@ -788,13 +790,6 @@
                 closeOrderModal();
             }
         }
-
-        // Newsletter form
-        document.querySelector('.newsletter-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for subscribing to our newsletter!');
-            this.reset();
-        });
 
         // Fetch and display feedback
         async function fetchFeedback() {
