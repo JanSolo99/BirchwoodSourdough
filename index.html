@@ -407,32 +407,7 @@
         .feedback-scroll {
             display: flex;
             gap: 24px;
-            overflow-x: auto;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none;  /* IE and Edge */
-        }
-
-        .feedback-scroll::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, and Opera */
-        }
-
-        .feedback-container:hover .feedback-scroll {
-            scrollbar-width: thin; /* Firefox */
-            -ms-overflow-style: auto;  /* IE and Edge */
-        }
-
-        .feedback-container:hover .feedback-scroll::-webkit-scrollbar {
-            display: block;
-            height: 8px;
-        }
-
-        .feedback-container:hover .feedback-scroll::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-
-        .feedback-container:hover .feedback-scroll::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            animation: scroll 30s linear infinite;
         }
 
         .feedback-card {
