@@ -245,7 +245,10 @@
         <div class="contact-form">
             <div id="messageContainer"></div>
             
-            <form id="contactForm">
+            <form id="contactForm" name="contact" method="POST" action="/thank-you.html" data-netlify="true" netlify-honeypot="bot-field">
+                <!-- Honeypot field for spam protection -->
+                <input type="hidden" name="bot-field" />
+                
                 <div class="form-group">
                     <label class="form-label" for="name">Your Name *</label>
                     <input type="text" id="name" name="name" class="form-input" required>
@@ -288,58 +291,11 @@
     </div>
 
     <script>
-        function showMessage(message, type = 'success') {
-            const container = document.getElementById('messageContainer');
-            container.innerHTML = `<div class="${type}-message">${message}</div>`;
-            
-            // Scroll to top of form to show message
-            document.querySelector('.contact-form').scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
-            });
-        }
-
-        // Form submission
-        document.getElementById('contactForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
+        // Simple loading state for form submission
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Sending Message...';
-            
-            const formData = new FormData(this);
-            const contactData = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                phone: formData.get('phone') || '',
-                subject: formData.get('subject'),
-                message: formData.get('message')
-            };
-            
-            try {
-                const response = await fetch('/.netlify/functions/send-contact-email', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(contactData)
-                });
-
-                if (response.ok) {
-                    showMessage('Thank you for your message! We\'ll get back to you soon.', 'success');
-                    this.reset(); // Clear the form
-                } else {
-                    const errorData = await response.json();
-                    showMessage(errorData.error || 'Sorry, there was an error sending your message. Please try again.', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Contact form error:', error);
-                showMessage('Sorry, there was an error sending your message. Please try again or contact us directly on Instagram.', 'error');
-            }
-            
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Send Message';
         });
     </script>
 </body>
