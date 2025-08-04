@@ -14,10 +14,26 @@
         .star.selected {
             color: orange;
         }
+        .back-button {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        .back-button:hover {
+            color: #495057;
+            text-decoration: none;
+        }
+        .back-button::before {
+            content: "← ";
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
+        <a href="index.html" class="back-button">Back to Home</a>
         <h1>Leave Feedback</h1>
         <form id="feedback-form">
             <div class="form-group">
