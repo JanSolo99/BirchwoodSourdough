@@ -402,12 +402,24 @@
             position: relative;
             width: 100%;
             margin-bottom: 32px;
+            touch-action: pan-x;
         }
 
         .feedback-scroll {
             display: flex;
             gap: 24px;
             animation: scroll 30s linear infinite;
+            transition: transform 0.3s ease;
+        }
+
+        .feedback-scroll.dragging {
+            animation-play-state: paused;
+            transition: none;
+        }
+
+        .feedback-scroll.swipe-transition {
+            animation-play-state: paused;
+            transition: transform 0.3s ease;
         }
 
         .feedback-card {
@@ -417,6 +429,7 @@
             width: 300px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             flex-shrink: 0;
+            user-select: none;
         }
 
         .feedback-author {
@@ -433,6 +446,40 @@
         .feedback-scroll.single-item {
             animation: none;
             justify-content: center;
+        }
+
+        /* Mobile swipe indicators */
+        .swipe-indicators {
+            display: none;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .swipe-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ddd;
+            transition: background-color 0.3s ease;
+        }
+
+        .swipe-dot.active {
+            background-color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .swipe-indicators {
+                display: flex;
+            }
+            
+            .feedback-scroll {
+                animation: none;
+            }
+            
+            .feedback-container {
+                overflow: visible;
+            }
         }
 
         @keyframes scroll {
@@ -479,6 +526,7 @@
             <div class="feedback-container">
                 <div class="feedback-scroll" id="feedback-scroll"></div>
             </div>
+            <div class="swipe-indicators" id="swipe-indicators"></div>
             <a href="feedback.html" class="feedback-button" style="position: static; margin-top: 24px;">Leave Feedback</a>
         </div>
     </section>
@@ -808,6 +856,13 @@
         }
 
         // Fetch and display feedback
+        let feedbackData = [];
+        let currentIndex = 0;
+        let isAnimationPaused = false;
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let isDragging = false;
+
         async function fetchFeedback() {
             const feedbackScroll = document.getElementById('feedback-scroll');
             const feedbackContainer = document.querySelector('.feedback-container');
@@ -815,7 +870,7 @@
             try {
                 const response = await fetch('/.netlify/functions/get-feedback');
                 if (response.ok) {
-                    const feedbackData = await response.json();
+                    feedbackData = await response.json();
                     
                     if (feedbackData.length > 0) {
                         // Clear existing content
@@ -839,8 +894,8 @@
                             feedbackScroll.appendChild(card);
                         });
 
-                        // Only duplicate if there are multiple items for seamless scrolling
-                        if (feedbackData.length > 1) {
+                        // Only duplicate if there are multiple items for seamless scrolling on desktop
+                        if (feedbackData.length > 1 && window.innerWidth > 768) {
                             feedbackData.forEach(item => {
                                 const card = document.createElement('div');
                                 card.className = 'feedback-card';
@@ -857,9 +912,16 @@
                                 `;
                                 feedbackScroll.appendChild(card);
                             });
-                        } else {
+                        } else if (feedbackData.length === 1) {
                             // Single item - center it and don't animate
                             feedbackScroll.classList.add('single-item');
+                        }
+
+                        // Setup mobile swipe functionality
+                        if (window.innerWidth <= 768 && feedbackData.length > 1) {
+                            setupMobileSwipe();
+                            createSwipeIndicators();
+                            updateSwipePosition();
                         }
                     } else {
                         feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">No feedback yet. Be the first to leave a review!</p>';
@@ -872,6 +934,145 @@
                 feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p>';
             }
         }
+
+        function setupMobileSwipe() {
+            const feedbackScroll = document.getElementById('feedback-scroll');
+            
+            // Touch events
+            feedbackScroll.addEventListener('touchstart', handleTouchStart, { passive: false });
+            feedbackScroll.addEventListener('touchmove', handleTouchMove, { passive: false });
+            feedbackScroll.addEventListener('touchend', handleTouchEnd, { passive: false });
+            
+            // Mouse events for testing on desktop
+            feedbackScroll.addEventListener('mousedown', handleMouseStart);
+            feedbackScroll.addEventListener('mousemove', handleMouseMove);
+            feedbackScroll.addEventListener('mouseup', handleMouseEnd);
+            feedbackScroll.addEventListener('mouseleave', handleMouseEnd);
+        }
+
+        function handleTouchStart(e) {
+            touchStartX = e.touches[0].clientX;
+            isDragging = true;
+            document.getElementById('feedback-scroll').classList.add('dragging');
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            touchEndX = e.touches[0].clientX;
+        }
+
+        function handleTouchEnd(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const feedbackScroll = document.getElementById('feedback-scroll');
+            feedbackScroll.classList.remove('dragging');
+            feedbackScroll.classList.add('swipe-transition');
+            
+            const swipeDistance = touchStartX - touchEndX;
+            const threshold = 50;
+            
+            if (Math.abs(swipeDistance) > threshold) {
+                if (swipeDistance > 0 && currentIndex < feedbackData.length - 1) {
+                    // Swipe left - next card
+                    currentIndex++;
+                } else if (swipeDistance < 0 && currentIndex > 0) {
+                    // Swipe right - previous card
+                    currentIndex--;
+                }
+                updateSwipePosition();
+            }
+            
+            setTimeout(() => {
+                feedbackScroll.classList.remove('swipe-transition');
+            }, 300);
+        }
+
+        function handleMouseStart(e) {
+            touchStartX = e.clientX;
+            isDragging = true;
+            document.getElementById('feedback-scroll').classList.add('dragging');
+            e.preventDefault();
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging) return;
+            touchEndX = e.clientX;
+            e.preventDefault();
+        }
+
+        function handleMouseEnd(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const feedbackScroll = document.getElementById('feedback-scroll');
+            feedbackScroll.classList.remove('dragging');
+            feedbackScroll.classList.add('swipe-transition');
+            
+            const swipeDistance = touchStartX - touchEndX;
+            const threshold = 50;
+            
+            if (Math.abs(swipeDistance) > threshold) {
+                if (swipeDistance > 0 && currentIndex < feedbackData.length - 1) {
+                    // Swipe left - next card
+                    currentIndex++;
+                } else if (swipeDistance < 0 && currentIndex > 0) {
+                    // Swipe right - previous card
+                    currentIndex--;
+                }
+                updateSwipePosition();
+            }
+            
+            setTimeout(() => {
+                feedbackScroll.classList.remove('swipe-transition');
+            }, 300);
+        }
+
+        function updateSwipePosition() {
+            const feedbackScroll = document.getElementById('feedback-scroll');
+            const cardWidth = 300; // width of each card
+            const gap = 24; // gap between cards
+            const containerWidth = window.innerWidth - 32; // container padding
+            const offset = (containerWidth - cardWidth) / 2; // center the card
+            
+            const translateX = offset - (currentIndex * (cardWidth + gap));
+            feedbackScroll.style.transform = `translateX(${translateX}px)`;
+            
+            updateSwipeIndicators();
+        }
+
+        function createSwipeIndicators() {
+            const indicatorsContainer = document.getElementById('swipe-indicators');
+            indicatorsContainer.innerHTML = '';
+            
+            for (let i = 0; i < feedbackData.length; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'swipe-dot';
+                if (i === currentIndex) {
+                    dot.classList.add('active');
+                }
+                indicatorsContainer.appendChild(dot);
+            }
+        }
+
+        function updateSwipeIndicators() {
+            const dots = document.querySelectorAll('.swipe-dot');
+            dots.forEach((dot, index) => {
+                if (index === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth <= 768 && feedbackData.length > 1) {
+                updateSwipePosition();
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', fetchFeedback);
     </script>
