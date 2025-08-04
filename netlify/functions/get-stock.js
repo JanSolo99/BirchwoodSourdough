@@ -71,7 +71,7 @@ exports.handler = async function(event, context) {
             console.log(`Manual filter found ${records.length} matching orders`);
         }
 
-        // Count loaves from all orders (regardless of status) for the date
+        // Count loaves from confirmed/paid orders for the date
         records.forEach((record, index) => {
             const loaves = record.get('Number of Loaves') || 0;
             const pickupDay = record.get('Pickup Day');
@@ -80,9 +80,13 @@ exports.handler = async function(event, context) {
             
             console.log(`Order ${index + 1}: ${customerName}, ${loaves} loaves, pickup: ${pickupDay}, status: ${status}`);
             
-            // Only count orders that aren't cancelled
-            if (status !== 'Cancelled') {
+            // Only count orders that have been paid or confirmed (not pending payment)
+            const validStatuses = ['Payment Received', 'Ready for Pickup', 'Completed', 'Confirmed'];
+            if (validStatuses.includes(status)) {
                 stockForDate.ordered += loaves;
+                console.log(`  -> Counting ${loaves} loaves (status: ${status})`);
+            } else {
+                console.log(`  -> Not counting (status: ${status})`);
             }
         });
 
