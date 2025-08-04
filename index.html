@@ -73,6 +73,15 @@
             text-decoration: underline;
             font-size: 0.9rem;
         }
+		
+		.feedback-button {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius);     
+            cursor: pointer;           
+            transition: background-color 0.3s ease;
+        }
 
         .admin-button:hover {
             color: #ffffff;
@@ -469,7 +478,7 @@
             <div class="feedback-container">
                 <div class="feedback-scroll" id="feedback-scroll"></div>
             </div>
-            <a href="feedback.html" class="admin-button" style="position: static; margin-top: 24px;">Leave Feedback</a>
+            <a href="feedback.html" class="feedback-button" style="position: static; margin-top: 24px;">Leave Feedback</a>
         </div>
     </section>
 
