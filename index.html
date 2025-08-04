@@ -608,35 +608,31 @@
             fetchStockLevels(selectedPickupDate);
         }
         
-        function getNextAvailableDate(fromDate) {
-            const date = new Date(fromDate);
-            date.setHours(date.getHours() + 36);
+        function getNextAvailableDate() {
+            let now = new Date();
+            let pickupTime = new Date();
 
-            const dayOfWeek = date.getDay();
-            
-            // Calculate days to add to get to next Tuesday, Wednesday, or Thursday
-            let daysToAdd = 0;
-            if (dayOfWeek === 0) daysToAdd = 2; // Sunday -> Tuesday
-            else if (dayOfWeek === 1) daysToAdd = 1; // Monday -> Tuesday
-            else if (dayOfWeek === 2) daysToAdd = 0; // Tuesday (if not past)
-            else if (dayOfWeek === 3) daysToAdd = 0; // Wednesday (if not past)
-            else if (dayOfWeek === 4) daysToAdd = 0; // Thursday (if not past)
-            else if (dayOfWeek === 5) daysToAdd = 4; // Friday -> next Tuesday
-            else if (dayOfWeek === 6) daysToAdd = 3; // Saturday -> next Tuesday
-            
-            // If it's today and we're past business hours, go to next available day
-            const now = new Date();
-            if (daysToAdd === 0 && date.toDateString() === now.toDateString()) {
-                // If it's after 8 AM today, move to next available day
-                if (now.getHours() >= 8) {
-                    if (dayOfWeek === 2) daysToAdd = 1; // Tuesday -> Wednesday
-                    else if (dayOfWeek === 3) daysToAdd = 1; // Wednesday -> Thursday
-                    else if (dayOfWeek === 4) daysToAdd = 5; // Thursday -> next Tuesday
-                }
+            // Set pickup time to 8am on the same day
+            pickupTime.setHours(8, 0, 0, 0);
+
+            // If it's already past 8am, start checking from tomorrow
+            if (now.getHours() >= 8) {
+                now.setDate(now.getDate() + 1);
             }
-            
-            date.setDate(date.getDate() + daysToAdd);
-            return date;
+
+            // Loop until a valid pickup day is found
+            while (true) {
+                let dayOfWeek = now.getDay();
+                // 2 = Tuesday, 3 = Wednesday, 4 = Thursday
+                if (dayOfWeek >= 2 && dayOfWeek <= 4) {
+                    pickupTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
+                    let diff = pickupTime.getTime() - new Date().getTime();
+                    if (diff >= 36 * 60 * 60 * 1000) {
+                        return now;
+                    }
+                }
+                now.setDate(now.getDate() + 1);
+            }
         }
 
         function closeOrderModal() {

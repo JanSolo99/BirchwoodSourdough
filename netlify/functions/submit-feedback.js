@@ -12,6 +12,7 @@ exports.handler = async (event) => {
                     'Email': email,
                     'Feedback': feedback,
                     'Rating': parseInt(rating, 10),
+                    'Status': 'New'
                 },
             },
         ]);
