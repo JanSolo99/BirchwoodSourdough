@@ -64,9 +64,22 @@ exports.handler = async function(event, context) {
             // If that fails, get all records and filter manually
             console.log('Falling back to manual filtering');
             const allRecords = await base('Orders').select().all();
+            console.log(`Total records in Orders table: ${allRecords.length}`);
+            
+            // Debug: show all pickup days in the database
+            console.log('All pickup days in database:');
+            allRecords.forEach((record, i) => {
+                const pickupDay = record.get('Pickup Day');
+                const customerName = record.get('Customer Name');
+                const status = record.get('Status');
+                console.log(`  Record ${i + 1}: Customer=${customerName}, PickupDay="${pickupDay}", Status="${status}"`);
+            });
+            
             records = allRecords.filter(record => {
                 const pickupDay = record.get('Pickup Day');
-                return pickupDay === date;
+                const matches = pickupDay === date;
+                console.log(`Checking: "${pickupDay}" === "${date}" ? ${matches}`);
+                return matches;
             });
             console.log(`Manual filter found ${records.length} matching orders`);
         }
