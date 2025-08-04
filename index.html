@@ -417,7 +417,6 @@
         }
 
         .feedback-container:hover .feedback-scroll {
-            animation-play-state: paused;
             scrollbar-width: thin; /* Firefox */
             -ms-overflow-style: auto;  /* IE and Edge */
         }
@@ -459,12 +458,6 @@
         .feedback-scroll.single-item {
             animation: none;
             justify-content: center;
-        }
-
-        @media (min-width: 769px) {
-            .feedback-scroll {
-                animation: scroll 30s linear infinite;
-            }
         }
 
         @keyframes scroll {
