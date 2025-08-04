@@ -19,7 +19,16 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    // Check for Authorization header
+    if (!event.headers.authorization) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Authorization header required' }) };
+    }
+
     const token = event.headers.authorization.split(' ')[1];
+    if (!token) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Token not provided' }) };
+    }
+
     jwt.verify(token, JWT_SECRET);
 
     const { orderId, status } = JSON.parse(event.body);
@@ -40,8 +49,8 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid token' }) };
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid or expired token' }) };
     }
     console.error('Error updating order status:', error);
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Internal server error' }) };

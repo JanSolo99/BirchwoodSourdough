@@ -47,11 +47,11 @@ exports.handler = async (event) => {
             body: JSON.stringify(feedback),
         };
     } catch (error) {
-        if (error.name === 'JsonWebTokenError') {
+        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
             return { 
                 statusCode: 401, 
                 headers, 
-                body: JSON.stringify({ error: 'Invalid token' }) 
+                body: JSON.stringify({ error: 'Invalid or expired token' }) 
             };
         }
         console.error('Error fetching feedback:', error);

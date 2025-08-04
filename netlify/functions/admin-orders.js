@@ -52,8 +52,8 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid token' }) };
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid or expired token' }) };
     }
     console.error('Error fetching orders:', error);
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Internal server error' }) };
