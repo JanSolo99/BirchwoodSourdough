@@ -90,12 +90,16 @@ exports.handler = async (event, context) => {
       from: 'Birchwood' // Will appear as sender name (max 11 chars)
     };
 
-    const response = await axios.post(CELLCAST_API_URL, smsData, {
+    const axiosConfig = {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${CELLCAST_APPKEY}`
       }
-    });
+    };
+
+    console.log('Sending request to Cellcast with headers:', axiosConfig.headers);
+
+    const response = await axios.post(CELLCAST_API_URL, smsData, axiosConfig);
 
     console.log('SMS sent successfully via Cellcast:', response.data);
     return { 
