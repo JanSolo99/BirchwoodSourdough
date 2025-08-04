@@ -21,9 +21,10 @@ exports.handler = async (event) => {
             body: JSON.stringify({ message: 'Feedback submitted successfully' }),
         };
     } catch (error) {
+        console.error('Error submitting feedback to Airtable:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to submit feedback' }),
+            body: JSON.stringify({ error: 'Failed to submit feedback', details: error.message }),
         };
     }
 };
