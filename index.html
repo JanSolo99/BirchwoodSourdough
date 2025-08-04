@@ -789,11 +789,13 @@
 
         // Fetch and display feedback
         async function fetchFeedback() {
+            const feedbackScroll = document.getElementById('feedback-scroll');
+            const feedbackContainer = document.querySelector('.feedback-container');
+
             try {
                 const response = await fetch('/.netlify/functions/get-feedback');
                 if (response.ok) {
                     const feedbackData = await response.json();
-                    const feedbackScroll = document.getElementById('feedback-scroll');
                     
                     if (feedbackData.length > 0) {
                         feedbackData.forEach(item => {
@@ -831,12 +833,14 @@
                             feedbackScroll.appendChild(card);
                         });
                     } else {
-                        document.querySelector('.feedback-section').style.display = 'none';
+                        feedbackContainer.innerHTML = '<p>No feedback yet. Be the first to leave a review!</p>';
                     }
+                } else {
+                    feedbackContainer.innerHTML = '<p>Could not load feedback at this time.</p>';
                 }
             } catch (error) {
                 console.error('Error fetching feedback:', error);
-                document.querySelector('.feedback-section').style.display = 'none';
+                feedbackContainer.innerHTML = '<p>Could not load feedback at this time.</p>';
             }
         }
 

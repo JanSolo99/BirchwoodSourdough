@@ -21,9 +21,10 @@ exports.handler = async () => {
             body: JSON.stringify(feedback),
         };
     } catch (error) {
+        console.error('Error fetching feedback from Airtable:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to fetch feedback' }),
+            body: JSON.stringify({ error: 'Failed to fetch feedback', details: error.message }),
         };
     }
 };
