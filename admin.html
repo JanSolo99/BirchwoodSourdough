@@ -514,6 +514,13 @@
             <div id="bakeSheetContainer"></div>
         </div>
 
+        <div class="filter-section">
+            <h3>Feedback Management</h3>
+            <div id="feedbackContainer">
+                <div class="loading">Loading feedback...</div>
+            </div>
+        </div>
+
         <div id="errorContainer"></div>
 
         <div class="orders-section">
@@ -889,7 +896,86 @@
         document.getElementById('statusFilter').addEventListener('change', filterAndDisplayOrders);
         document.getElementById('dateFilter').addEventListener('change', filterAndDisplayOrders);
 
-        
+        // Fetch and display feedback
+        async function loadFeedback() {
+            if (!authToken) return;
+
+            try {
+                const response = await fetch('/.netlify/functions/get-all-feedback', {
+                    headers: {
+                        'x-admin-secret': authToken
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch feedback');
+                }
+
+                const feedbackData = await response.json();
+                displayFeedback(feedbackData);
+
+            } catch (error) {
+                console.error('Error loading feedback:', error);
+                document.getElementById('feedbackContainer').innerHTML = '<div class="error-message">Failed to load feedback.</div>';
+            }
+        }
+
+        function displayFeedback(feedback) {
+            const container = document.getElementById('feedbackContainer');
+
+            if (feedback.length === 0) {
+                container.innerHTML = '<div class="empty-state">No feedback submitted yet.</div>';
+                return;
+            }
+
+            container.innerHTML = feedback.map(item => `
+                <div class="order-item">
+                    <div class="order-info">
+                        <div class="order-customer">${escapeHtml(item.name)}</div>
+                        <div class="order-details">Rating: ${item.rating}/5</div>
+                        <div class="order-meta">${escapeHtml(item.feedback)}</div>
+                    </div>
+                    <div class="order-actions">
+                        <span class="status-badge status-${(item.status || 'New').toLowerCase().replace(/\s+/g, '-')}">${item.status || 'New'}</span>
+                        <button onclick="deleteFeedback('${item.id}')" class="btn btn-danger btn-small">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function deleteFeedback(id) {
+            if (!authToken) {
+                showLoginScreen();
+                return;
+            }
+
+            if (!confirm('Are you sure you want to delete this feedback?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/.netlify/functions/delete-feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-secret': authToken
+                    },
+                    body: JSON.stringify({ id })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete feedback');
+                }
+
+                loadFeedback();
+
+            } catch (error) {
+                console.error('Error deleting feedback:', error);
+                showError('Failed to delete feedback.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadFeedback);
     </script>
 </body>
 </html>
