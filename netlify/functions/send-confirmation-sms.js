@@ -85,15 +85,15 @@ exports.handler = async (event, context) => {
 
     // Cellcast API request
     const smsData = {
-      to: [formattedPhone],
-      message: message,
+      sms_text: message,
+      numbers: [formattedPhone],
       from: 'Birchwood' // Will appear as sender name (max 11 chars)
     };
 
     const axiosConfig = {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CELLCAST_APPKEY}`
+        'APPKEY': CELLCAST_APPKEY
       }
     };
 
