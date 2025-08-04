@@ -833,14 +833,14 @@
                             feedbackScroll.appendChild(card);
                         });
                     } else {
-                        feedbackContainer.innerHTML = '<p>No feedback yet. Be the first to leave a review!</p>';
+                        feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">No feedback yet. Be the first to leave a review!</p>';
                     }
                 } else {
-                    feedbackContainer.innerHTML = '<p>Could not load feedback at this time.</p>';
+                    feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p>';
                 }
             } catch (error) {
                 console.error('Error fetching feedback:', error);
-                feedbackContainer.innerHTML = '<p>Could not load feedback at this time.</p>';
+                feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p>';
             }
         }
 
