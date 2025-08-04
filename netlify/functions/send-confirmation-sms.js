@@ -1,15 +1,10 @@
-const twilio = require('twilio');
+const axios = require('axios');
 
-const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
-const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
+const CELLCAST_API_KEY = process.env.CELLCAST_API_KEY;
+const CELLCAST_API_SECRET = process.env.CELLCAST_API_SECRET;
+const CELLCAST_API_URL = 'https://cellcast.com.au/api/v3/sms';
 
-let client;
-if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN) {
-  client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-}
-
-// Helper function to format phone number
+// Helper function to format phone number for Australian mobile
 function formatPhoneNumber(phone) {
   // Remove all non-digits
   const digits = phone.replace(/\D/g, '');
@@ -60,9 +55,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Check if we have Twilio credentials
-    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-      console.error('Twilio credentials not configured');
+    // Check if we have Cellcast credentials
+    if (!CELLCAST_API_KEY || !CELLCAST_API_SECRET) {
+      console.error('Cellcast credentials not configured');
       return { 
         statusCode: 200, 
         body: JSON.stringify({ 
@@ -89,28 +84,39 @@ exports.handler = async (event, context) => {
 
     const message = `Hi ${customerName}! Your Birchwood Sourdough order confirmed: ${numLoaves} loaf${numLoaves > 1 ? 'ves' : ''} for pickup on ${pickupDay} at ${pickupLocation || 'TBD location'}. Please pay A$${totalAmount} to PayID: janberkhout@up.me (Ref: ${orderReference}). Thanks!`;
 
-    const smsResult = await client.messages.create({
-      body: message,
-      from: TWILIO_PHONE_NUMBER,
-      to: formattedPhone
+    // Cellcast API request
+    const smsData = {
+      to: [formattedPhone],
+      message: message,
+      from: 'Birchwood' // Will appear as sender name (max 11 chars)
+    };
+
+    const response = await axios.post(CELLCAST_API_URL, smsData, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      auth: {
+        username: CELLCAST_API_KEY,
+        password: CELLCAST_API_SECRET
+      }
     });
 
-    console.log('SMS sent successfully:', smsResult.sid);
+    console.log('SMS sent successfully via Cellcast:', response.data);
     return { 
       statusCode: 200, 
       body: JSON.stringify({ 
-        message: 'SMS confirmation sent successfully.', 
-        messageSid: smsResult.sid 
+        message: 'SMS confirmation sent successfully via Cellcast.', 
+        messageId: response.data.data?.[0]?.message_id || response.data.message_id 
       }) 
     };
 
   } catch (error) {
-    console.error('Error sending SMS:', error);
+    console.error('Error sending SMS via Cellcast:', error.response?.data || error.message);
     return { 
       statusCode: 500, 
       body: JSON.stringify({ 
         error: 'Failed to send SMS confirmation.',
-        details: error.message 
+        details: error.response?.data?.message || error.message 
       }) 
     };
   }

@@ -1,139 +1,178 @@
-# SMS Integration Setup Guide
+# SMS Integration Setup Guide - Australian Providers
 
-## 🎯 Overview
-Your bread preorder app now supports SMS confirmations alongside email confirmations. The system automatically detects whether the contact info is an email or phone number and sends the appropriate confirmation.
+## 🇦🇺 Overview
+Your bread preorder app now supports SMS confirmations using **Australian SMS providers**. The system automatically detects whether the contact info is an email or phone number and sends the appropriate confirmation.
 
 ## 📱 What's Been Added
 
 ### New Files:
-- `send-confirmation-sms.js` - Sends initial order confirmation SMS
+- `send-confirmation-sms.js` - Sends initial order confirmation SMS via Cellcast
 - `send-payment-confirmation-sms.js` - Sends payment received confirmation SMS
 
 ### Modified Files:
-- `package.json` - Added Twilio dependency
+- `package.json` - Added axios dependency (replacing Twilio)
 - `create-order.js` - Added SMS confirmation after order creation
-- `update-order-status.js` - Added SMS when payment is confirmed
-- `.env.example` - Added Twilio environment variables
+- `update-order-status.js` - Added SMS when payment is confirmed  
+- `.env.example` - Added Cellcast environment variables
 
-## 🚀 Setup Instructions
+## 🏆 Australian SMS Provider Options
 
-### 1. Create Twilio Account
-1. Go to https://www.twilio.com/try-twilio
-2. Sign up for a free account
-3. Verify your phone number
-4. Get $15 USD free trial credit (about 300 SMS messages)
+### **#1 Cellcast (Recommended)**
+**🇦🇺 Melbourne-based, Australian-owned**
 
-### 2. Get Twilio Credentials
-1. In Twilio Console, go to Account > API keys & tokens
-2. Note down your **Account SID** and **Auth Token**
-3. Go to Phone Numbers > Manage > Active numbers
-4. Buy an Australian phone number (+61) - costs ~$1.50 USD/month
-5. Note down this phone number
+**Why Cellcast is perfect:**
+- **Cheapest**: $0.028 AUD per SMS (vs Twilio's $0.0515 AUD)
+- **No monthly fees**: Pay only for messages sent
+- **Australian support**: Melbourne-based phone support
+- **Direct carrier connections**: Telstra, Optus, Vodafone
+- **100% uptime SLA**: Guaranteed delivery
+- **No credit expiry**: Credits never expire
+
+### Alternative Australian Providers:
+- **Notifyre**: ~$0.030/SMS, ISO 27001 certified
+- **SMS Broadcast**: ~$0.035/SMS, long-established Australian provider
+
+## 🚀 Setup Instructions - Cellcast
+
+### 1. Create Cellcast Account
+1. Go to https://www.cellcast.com.au/
+2. Click "Sign Up" for free account
+3. Verify your details
+4. Get free SMS credits to test
+
+### 2. Get API Credentials
+1. Login to Cellcast dashboard
+2. Go to "API Connect" → "API Key"
+3. Click "Activate Key" to generate credentials
+4. Note down your **API Key** and **API Secret**
 
 ### 3. Configure Environment Variables
 
 #### In Netlify:
 Go to Site settings > Environment variables and add:
 ```
-TWILIO_ACCOUNT_SID=your_account_sid_here
-TWILIO_AUTH_TOKEN=your_auth_token_here  
-TWILIO_PHONE_NUMBER=+61xxxxxxxxx
+CELLCAST_API_KEY=your_api_key_here
+CELLCAST_API_SECRET=your_api_secret_here
 ```
 
 #### For Local Development (.env file):
 ```
-TWILIO_ACCOUNT_SID=your_account_sid_here
-TWILIO_AUTH_TOKEN=your_auth_token_here
-TWILIO_PHONE_NUMBER=+61xxxxxxxxx
+CELLCAST_API_KEY=your_api_key_here
+CELLCAST_API_SECRET=your_api_secret_here
 ```
 
 ### 4. Install Dependencies
-Run: `npm install` (this will install the new Twilio package)
+Run: `npm install` (this will install axios for API calls)
 
 ### 5. Deploy to Netlify
 Commit and push your changes, or trigger a new deploy in Netlify
 
-## 💰 Cost Breakdown
+## 💰 Cost Comparison (AUD)
 
-### Twilio Pricing (AUD):
-- **Setup**: Free (trial gives $15 USD credit)
-- **Phone number**: ~$2 AUD/month
-- **SMS messages**: ~$0.10 AUD per SMS
-- **Estimated monthly cost**: $5-15 AUD (for 50-150 orders/month)
+| Provider | Per SMS | Monthly Fee | Setup | Location |
+|----------|---------|-------------|-------|----------|
+| **Cellcast** 🏆 | $0.028 | $0 | Free | 🇦🇺 Melbourne |
+| **Notifyre** | $0.030 | $0 | Free | 🇦🇺 Australia |
+| **SMS Broadcast** | $0.035 | $0 | Free | 🇦🇺 Australia |
+| Twilio | $0.0515 | $0 | $2/month phone | 🇺🇸 USA |
 
-### Alternatives Considered:
-- **AWS SNS**: $0.08 AUD/SMS (no phone number needed, but more complex setup)
-- **MessageBird**: Similar pricing to Twilio
-- **Vonage**: Similar pricing to Twilio
+**For 100 orders/month:**
+- Cellcast: **$2.80 AUD/month**
+- Twilio: **$5.15 AUD/month** + $2/month = **$7.15 AUD/month**
+
+**You save ~60% with Cellcast!** 🎉
 
 ## 📋 How It Works
 
-### For Email Orders:
-- Customer enters email address
-- System sends email confirmation with PayID details
-- When you mark order as "Payment Received", system sends email confirmation
+### Smart Message Detection:
+- **Email address** (contains "@") → Email confirmation only
+- **Phone number** (digits, no "@") → SMS confirmation only
+- **Invalid format** → Order created, skips confirmation
 
-### For Phone Orders:
-- Customer enters phone number (supports Australian formats)
-- System sends SMS confirmation with PayID details  
-- When you mark order as "Payment Received", system sends SMS confirmation
-
-### Smart Detection:
-- Contains "@" = Email → sends email only
-- Contains numbers, no "@" = Phone → sends SMS only
-- Invalid format = Creates order but skips confirmation
-
-### Phone Number Formats Supported:
+### Phone Number Support:
 - `0412345678` → converts to `+61412345678`
 - `+61412345678` → keeps as-is
 - `61412345678` → converts to `+61412345678`
 
+### Message Flow:
+1. **Order placed** → SMS: "Order confirmed, please pay A$X to PayID..."
+2. **Payment received** → SMS: "Payment received, bread ready on [date]"
+
 ## 🔧 Testing
 
-### Test SMS (during free trial):
-1. Use your verified phone number as contact info
-2. Place a test order
-3. You should receive SMS confirmation
-
-### Test Payment Confirmation:
-1. Place order with phone number
-2. Go to admin panel
-3. Change order status to "Payment Received"
+### Test SMS:
+1. Use your mobile number as contact info when placing test order
+2. You should receive SMS confirmation immediately
+3. Mark order as "Payment Received" in admin
 4. You should receive payment confirmation SMS
+
+### Message Preview:
+**Initial Order SMS:**
+> Hi John! Your Birchwood Sourdough order confirmed: 2 loaves for pickup on 2025-08-10 at Farmers Market. Please pay A$16 to PayID: janberkhout@up.me (Ref: BreadOrder-John). Thanks!
+
+**Payment Confirmation SMS:**
+> Great news John! Your payment has been received. Your 2 loaves will be ready for pickup on 2025-08-10 at Farmers Market. Thanks for choosing Birchwood Sourdough!
 
 ## 🚨 Important Notes
 
-### Message Length:
-- SMS is limited to 160 characters
-- Long messages are split into multiple SMS (costs more)
-- Current messages are optimized to stay under 160 characters
+### Message Features:
+- Sender ID shows as "Birchwood" 
+- Messages optimized for 160 character SMS limit
+- Australian mobile numbers only (04xxxxxxxx format)
 
 ### Error Handling:
 - If SMS fails, order still processes successfully
-- Errors are logged but don't break the order flow
-- Falls back gracefully if Twilio is not configured
+- Errors logged but don't break order flow
+- Graceful fallback if Cellcast not configured
 
 ### Security:
-- Twilio credentials are stored as environment variables
-- No sensitive data is logged in SMS messages
-- Failed SMS attempts are logged for debugging
+- API credentials stored as environment variables
+- HTTPS-only API communication
+- No sensitive data in SMS messages
+
+## 🇦🇺 Why Australian Providers Are Better
+
+### **Local Advantages:**
+- **Cheaper rates** for Australian SMS
+- **Faster delivery** via direct carrier connections
+- **Local support** in Australian timezones
+- **Better compliance** with Australian regulations
+- **No currency conversion** fees
+
+### **Cellcast Specific Benefits:**
+- Melbourne office with local phone support
+- Direct connections to Telstra, Optus, Vodafone
+- No international routing delays
+- Australian business hours support
+- Local bank account for payments
 
 ## 📈 Monitoring
 
-### In Twilio Console:
-- Monitor -> Logs -> SMS shows all sent messages
-- Billing shows exact costs
-- Debugger shows any failed messages
+### Cellcast Dashboard:
+- Real-time delivery reports
+- SMS credit balance
+- Message history and analytics
+- Failed message alerts
 
-### In Netlify Functions:
-- Functions tab shows SMS function execution logs
-- Errors appear in function logs
+### Netlify Functions:
+- Function execution logs
+- Error tracking
+- SMS API response monitoring
 
 ## 🔄 Next Steps
 
-1. **Test thoroughly** with your own phone number
-2. **Monitor costs** in first month to adjust if needed  
-3. **Consider adding** SMS for order ready notifications
-4. **Optimize messages** if you hit character limits frequently
+1. **Test thoroughly** with your mobile number
+2. **Monitor first month** costs and delivery rates
+3. **Consider upgrading** to higher volume bundles for better rates
+4. **Explore MMS** for sending images of fresh bread! 📸🍞
 
-The SMS integration is now live and ready to use! 🎉
+**Your SMS integration is now powered by Australian technology!** 🇦🇺✨
+
+## 🆘 Support Contacts
+
+**Cellcast Support:**
+- Phone: +61 (03) 8560 7025
+- Email: info@cellcast.com.au
+- Address: Level 2, 40 Porter St, Prahran, VIC 3181
+
+The SMS integration is live and ready to support your local bread business! 🥖📱

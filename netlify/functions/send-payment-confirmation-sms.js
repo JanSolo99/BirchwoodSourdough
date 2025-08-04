@@ -1,13 +1,8 @@
-const twilio = require('twilio');
+const axios = require('axios');
 
-const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
-const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
-
-let client;
-if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN) {
-  client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-}
+const CELLCAST_API_KEY = process.env.CELLCAST_API_KEY;
+const CELLCAST_API_SECRET = process.env.CELLCAST_API_SECRET;
+const CELLCAST_API_URL = 'https://cellcast.com.au/api/v3/sms';
 
 // Helper function to format phone number
 function formatPhoneNumber(phone) {
@@ -53,9 +48,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Check Twilio credentials
-    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-      console.error('Twilio credentials not configured');
+    // Check Cellcast credentials
+    if (!CELLCAST_API_KEY || !CELLCAST_API_SECRET) {
+      console.error('Cellcast credentials not configured');
       return { 
         statusCode: 200, 
         body: JSON.stringify({ 
@@ -80,28 +75,39 @@ exports.handler = async (event, context) => {
 
     const message = `Great news ${customerName}! Your payment has been received. Your ${numLoaves} loaf${numLoaves > 1 ? 'ves' : ''} will be ready for pickup on ${pickupDay} at ${pickupLocation || 'the usual location'}. Thanks for choosing Birchwood Sourdough!`;
 
-    const smsResult = await client.messages.create({
-      body: message,
-      from: TWILIO_PHONE_NUMBER,
-      to: formattedPhone
+    // Cellcast API request
+    const smsData = {
+      to: [formattedPhone],
+      message: message,
+      from: 'Birchwood'
+    };
+
+    const response = await axios.post(CELLCAST_API_URL, smsData, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      auth: {
+        username: CELLCAST_API_KEY,
+        password: CELLCAST_API_SECRET
+      }
     });
 
-    console.log('Payment confirmation SMS sent:', smsResult.sid);
+    console.log('Payment confirmation SMS sent via Cellcast:', response.data);
     return { 
       statusCode: 200, 
       body: JSON.stringify({ 
-        message: 'Payment confirmation SMS sent successfully.', 
-        messageSid: smsResult.sid 
+        message: 'Payment confirmation SMS sent successfully via Cellcast.', 
+        messageId: response.data.data?.[0]?.message_id || response.data.message_id 
       }) 
     };
 
   } catch (error) {
-    console.error('Error sending payment confirmation SMS:', error);
+    console.error('Error sending payment confirmation SMS via Cellcast:', error.response?.data || error.message);
     return { 
       statusCode: 500, 
       body: JSON.stringify({ 
         error: 'Failed to send payment confirmation SMS.',
-        details: error.message 
+        details: error.response?.data?.message || error.message 
       }) 
     };
   }
