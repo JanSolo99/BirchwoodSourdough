@@ -398,6 +398,7 @@
             overflow: hidden;
             position: relative;
             width: 100%;
+            margin-bottom: 32px;
         }
 
         .feedback-scroll {
@@ -412,6 +413,7 @@
             padding: 24px;
             min-width: 300px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex-shrink: 0;
         }
 
         .feedback-author {
@@ -422,6 +424,12 @@
         .feedback-rating {
             color: orange;
             margin-bottom: 8px;
+        }
+
+        /* Only run animation if there are multiple items */
+        .feedback-scroll.single-item {
+            animation: none;
+            justify-content: center;
         }
 
         @keyframes scroll {
@@ -590,7 +598,19 @@
                 enable: [
                     function(date) {
                         // Enable only Tuesdays (2), Wednesdays (3), and Thursdays (4)
-                        return (date.getDay() === 2 || date.getDay() === 3 || date.getDay() === 4);
+                        if (!(date.getDay() === 2 || date.getDay() === 3 || date.getDay() === 4)) {
+                            return false;
+                        }
+                        
+                        // Check if there are at least 36 hours from now until 8am pickup day
+                        let now = new Date();
+                        let pickupTime = new Date(date);
+                        pickupTime.setHours(8, 0, 0, 0);
+                        
+                        let timeDiff = pickupTime.getTime() - now.getTime();
+                        let hoursDiff = timeDiff / (1000 * 60 * 60);
+                        
+                        return hoursDiff >= 36;
                     }
                 ],
                 onChange: function(selectedDates, dateStr, instance) {
@@ -798,6 +818,10 @@
                     const feedbackData = await response.json();
                     
                     if (feedbackData.length > 0) {
+                        // Clear existing content
+                        feedbackScroll.innerHTML = '';
+                        
+                        // Add feedback items
                         feedbackData.forEach(item => {
                             const card = document.createElement('div');
                             card.className = 'feedback-card';
@@ -815,32 +839,37 @@
                             feedbackScroll.appendChild(card);
                         });
 
-                        // Duplicate feedback items for seamless scrolling
-                        feedbackData.forEach(item => {
-                            const card = document.createElement('div');
-                            card.className = 'feedback-card';
-                            
-                            let stars = '';
-                            for (let i = 0; i < item.rating; i++) {
-                                stars += '&#9733;';
-                            }
-                            
-                            card.innerHTML = `
-                                <div class="feedback-author">${item.name}</div>
-                                <div class="feedback-rating">${stars}</div>
-                                <p>${item.feedback}</p>
-                            `;
-                            feedbackScroll.appendChild(card);
-                        });
+                        // Only duplicate if there are multiple items for seamless scrolling
+                        if (feedbackData.length > 1) {
+                            feedbackData.forEach(item => {
+                                const card = document.createElement('div');
+                                card.className = 'feedback-card';
+                                
+                                let stars = '';
+                                for (let i = 0; i < item.rating; i++) {
+                                    stars += '&#9733;';
+                                }
+                                
+                                card.innerHTML = `
+                                    <div class="feedback-author">${item.name}</div>
+                                    <div class="feedback-rating">${stars}</div>
+                                    <p>${item.feedback}</p>
+                                `;
+                                feedbackScroll.appendChild(card);
+                            });
+                        } else {
+                            // Single item - center it and don't animate
+                            feedbackScroll.classList.add('single-item');
+                        }
                     } else {
-                        feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">No feedback yet. Be the first to leave a review!</p>';
+                        feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">No feedback yet. Be the first to leave a review!</p><a href="feedback.html" class="admin-button" style="position: static; margin-top: 24px;">Leave Feedback</a>';
                     }
                 } else {
-                    feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p>';
+                    feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p><a href="feedback.html" class="admin-button" style="position: static; margin-top: 24px;">Leave Feedback</a>';
                 }
             } catch (error) {
                 console.error('Error fetching feedback:', error);
-                feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p>';
+                feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p><a href="feedback.html" class="admin-button" style="position: static; margin-top: 24px;">Leave Feedback</a>';
             }
         }
 
