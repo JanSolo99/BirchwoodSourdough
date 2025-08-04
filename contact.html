@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Birchwood Sourdough</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #212121;
+            --background-color: #e4ddca;
+            --heading-color: #002f00;
+            --body-color: #463939;
+            --white: #ffffff;
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--body-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .back-button {
+            color: var(--body-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            margin-top: 32px;
+        }
+
+        .back-button:hover {
+            color: var(--heading-color);
+            text-decoration: none;
+        }
+
+        .back-button::before {
+            content: "← ";
+            margin-right: 5px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 48px 0 32px 0;
+        }
+
+        .site-title {
+            font-family: 'Josefin Sans', sans-serif;
+            font-weight: 400;
+            line-height: 1;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+
+        .site-title .birchwood {
+            color: var(--heading-color);
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .site-title .sourdough {
+            color: #2a1402;
+            font-size: 2rem;
+            display: block;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--heading-color);
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .contact-form {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--heading-color);
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 16px 24px;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #353535;
+        }
+
+        .submit-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 16px;
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+        }
+
+        .contact-info {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .contact-info h3 {
+            color: var(--heading-color);
+            margin-bottom: 16px;
+        }
+
+        .social-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 8px;
+        }
+
+        .social-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+            color: white;
+            text-decoration: none;
+        }
+
+        .social-button svg {
+            margin-right: 8px;
+            width: 20px;
+            height: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .site-title .birchwood {
+                font-size: 2rem;
+            }
+            
+            .site-title .sourdough {
+                font-size: 1.5rem;
+            }
+            
+            .contact-form {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">Back to Home</a>
+        
+        <header class="header">
+            <h1 class="site-title">
+                <span class="birchwood">BIRCHWOOD</span>
+                <span class="sourdough">SOURDOUGH</span>
+            </h1>
+        </header>
+
+        <h2 class="page-title">Contact Us</h2>
+
+        <div class="contact-form">
+            <div id="messageContainer"></div>
+            
+            <form id="contactForm">
+                <div class="form-group">
+                    <label class="form-label" for="name">Your Name *</label>
+                    <input type="text" id="name" name="name" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone Number (Optional)</label>
+                    <input type="tel" id="phone" name="phone" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="subject">Subject *</label>
+                    <input type="text" id="subject" name="subject" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="message">Message *</label>
+                    <textarea id="message" name="message" class="form-textarea" required placeholder="Tell us how we can help you..."></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">Send Message</button>
+            </form>
+        </div>
+
+        <div class="contact-info">
+            <h3>Follow Us</h3>
+            <a href="https://instagram.com/birchwoodsourdough" target="_blank" class="social-button">
+                <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M12.017 0C8.396 0 7.989.016 6.756.072 5.526.127 4.74.332 4.077.628a5.918 5.918 0 0 0-2.14 1.39A5.918 5.918 0 0 0 .628 4.077C.332 4.74.127 5.526.072 6.756.016 7.989 0 8.396 0 12.017c0 3.62.016 4.027.072 5.26.055 1.23.26 2.016.556 2.679a5.918 5.918 0 0 0 1.39 2.14 5.918 5.918 0 0 0 2.14 1.39c.663.294 1.449.499 2.679.556 1.233.056 1.64.072 5.26.072 3.62 0 4.027-.016 5.26-.072 1.23-.055 2.016-.26 2.679-.556a5.918 5.918 0 0 0 2.14-1.39 5.918 5.918 0 0 0 1.39-2.14c.294-.663.499-1.449.556-2.679.056-1.233.072-1.64.072-5.26 0-3.62-.016-4.027-.072-5.26-.055-1.23-.26-2.016-.556-2.679a5.918 5.918 0 0 0-1.39-2.14A5.918 5.918 0 0 0 19.462.628C18.799.332 18.013.127 16.783.072 15.55.016 15.143 0 11.522 0h.495zm-.566 2.134c3.562 0 3.988.013 5.391.066 1.3.059 2.006.276 2.476.46.622.242 1.066.532 1.532.998.466.466.756.91.998 1.532.184.47.401 1.176.46 2.476.053 1.403.066 1.829.066 5.391 0 3.562-.013 3.988-.066 5.391-.059 1.3-.276 2.006-.46 2.476a4.118 4.118 0 0 1-.998 1.532 4.118 4.118 0 0 1-1.532.998c-.47.184-1.176.401-2.476.46-1.403.053-1.829.066-5.391.066-3.562 0-3.988-.013-5.391-.066-1.3-.059-2.006-.276-2.476-.46a4.118 4.118 0 0 1-1.532-.998 4.118 4.118 0 0 1-.998-1.532c-.184-.47-.401-1.176-.46-2.476-.053-1.403-.066-1.829-.066-5.391 0-3.562.013-3.988.066-5.391.059-1.3.276-2.006.46-2.476.242-.622.532-1.066.998-1.532.466-.466.91-.756 1.532-.998.47-.184 1.176-.401 2.476-.46 1.403-.053 1.829-.066 5.391-.066z"/>
+                    <path fill-rule="evenodd" d="M12.017 5.838a6.179 6.179 0 1 0 0 12.358 6.179 6.179 0 0 0 0-12.358zM12.017 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.624-10.845a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0z"/>
+                </svg>
+                Follow us on Instagram
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function showMessage(message, type = 'success') {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="${type}-message">${message}</div>`;
+            
+            // Scroll to top of form to show message
+            document.querySelector('.contact-form').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+
+        // Form submission
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending Message...';
+            
+            const formData = new FormData(this);
+            const contactData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone') || '',
+                subject: formData.get('subject'),
+                message: formData.get('message')
+            };
+            
+            try {
+                const response = await fetch('/.netlify/functions/send-contact-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(contactData)
+                });
+
+                if (response.ok) {
+                    showMessage('Thank you for your message! We\'ll get back to you soon.', 'success');
+                    this.reset(); // Clear the form
+                } else {
+                    const errorData = await response.json();
+                    showMessage(errorData.error || 'Sorry, there was an error sending your message. Please try again.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Contact form error:', error);
+                showMessage('Sorry, there was an error sending your message. Please try again or contact us directly on Instagram.', 'error');
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Message';
+        });
+    </script>
+</body>
+</html>
