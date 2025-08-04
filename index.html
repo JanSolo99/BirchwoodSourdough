@@ -69,21 +69,14 @@
         }
 
         .admin-button {
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 8px 16px;
-            border-radius: var(--border-radius);
-            text-decoration: none;
+            color: #c6b9b9;
+            text-decoration: underline;
             font-size: 0.9rem;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-            margin-left: 16px;
         }
 
         .admin-button:hover {
-            background-color: #353535;
-            color: var(--white);
-            text-decoration: none;
+            color: #ffffff;
+            text-decoration: underline;
         }
 
         /* Sections */
@@ -493,7 +486,7 @@
                     Follow us on Instagram
                 </a>
             </div>
-            <p>&copy; 2025 Birchwood Sourdough. All rights reserved. <a href="admin.html" class="admin-button">Management</a></p>
+            <p>&copy; 2025 Birchwood Sourdough. All rights reserved. | <a href="admin.html" class="admin-button">Management</a></p>
         </div>
     </footer>
 
@@ -502,9 +495,6 @@
         <div class="modal-content">
             <button class="close" onclick="closeOrderModal()">&times;</button>
             <h2 style="margin-bottom: 24px; color: var(--heading-color);">Preorder Your Fresh Bread</h2>
-            <div class="availability-info" style="background-color: #fff3cd; border-color: #ffeeba;">
-                <p style="margin: 0; font-weight: 600; color: #856404;">Important: All orders must be placed by 8am the day before your selected pickup day.</p>
-            </div>
             
             <div id="messageContainer"></div>
             
@@ -862,14 +852,14 @@
                             feedbackScroll.classList.add('single-item');
                         }
                     } else {
-                        feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">No feedback yet. Be the first to leave a review!</p><a href="feedback.html" class="admin-button" style="position: static; margin-top: 24px;">Leave Feedback</a>';
+                        feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">No feedback yet. Be the first to leave a review!</p>';
                     }
                 } else {
-                    feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p><a href="feedback.html" class="admin-button" style="position: static; margin-top: 24px;">Leave Feedback</a>';
+                    feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p>';
                 }
             } catch (error) {
                 console.error('Error fetching feedback:', error);
-                feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p><a href="feedback.html" class="admin-button" style="position: static; margin-top: 24px;">Leave Feedback</a>';
+                feedbackContainer.innerHTML = '<p style="margin-bottom: 24px;">Could not load feedback at this time.</p>';
             }
         }
 
