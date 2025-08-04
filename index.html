@@ -352,6 +352,12 @@
                 font-size: 2.5rem;
             }
             
+            .admin-button {
+                position: static;
+                display: inline-block;
+                margin-top: 16px;
+            }
+            
             .product-grid {
                 grid-template-columns: 1fr;
                 max-width: 350px;
@@ -610,28 +616,29 @@
         
         function getNextAvailableDate() {
             let now = new Date();
-            let pickupTime = new Date();
-
-            // Set pickup time to 8am on the same day
-            pickupTime.setHours(8, 0, 0, 0);
-
-            // If it's already past 8am, start checking from tomorrow
-            if (now.getHours() >= 8) {
-                now.setDate(now.getDate() + 1);
-            }
+            let checkDate = new Date();
+            
+            // Start checking from tomorrow since we need at least 36 hours
+            checkDate.setDate(now.getDate() + 1);
 
             // Loop until a valid pickup day is found
             while (true) {
-                let dayOfWeek = now.getDay();
+                let dayOfWeek = checkDate.getDay();
                 // 2 = Tuesday, 3 = Wednesday, 4 = Thursday
                 if (dayOfWeek >= 2 && dayOfWeek <= 4) {
-                    pickupTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
-                    let diff = pickupTime.getTime() - new Date().getTime();
-                    if (diff >= 36 * 60 * 60 * 1000) {
-                        return now;
+                    // Calculate pickup time (8am on the pickup day)
+                    let pickupTime = new Date(checkDate);
+                    pickupTime.setHours(8, 0, 0, 0);
+                    
+                    // Check if there are at least 36 hours from now until 8am pickup day
+                    let timeDiff = pickupTime.getTime() - now.getTime();
+                    let hoursDiff = timeDiff / (1000 * 60 * 60);
+                    
+                    if (hoursDiff >= 36) {
+                        return checkDate;
                     }
                 }
-                now.setDate(now.getDate() + 1);
+                checkDate.setDate(checkDate.getDate() + 1);
             }
         }
 

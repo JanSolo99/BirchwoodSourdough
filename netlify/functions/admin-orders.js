@@ -19,7 +19,16 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    // Check for Authorization header
+    if (!event.headers.authorization) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Authorization header required' }) };
+    }
+
     const token = event.headers.authorization.split(' ')[1];
+    if (!token) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Token not provided' }) };
+    }
+
     jwt.verify(token, JWT_SECRET);
 
     const records = await base('Orders').select({ view: 'Grid view' }).all();

@@ -903,9 +903,15 @@
             try {
                 const response = await fetch('/.netlify/functions/get-all-feedback', {
                     headers: {
-                        'x-admin-secret': authToken
+                        'Authorization': `Bearer ${authToken}`
                     }
                 });
+
+                if (response.status === 401) {
+                    clearSession();
+                    showLoginScreen();
+                    return;
+                }
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch feedback');
@@ -958,10 +964,16 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-admin-secret': authToken
+                        'Authorization': `Bearer ${authToken}`
                     },
                     body: JSON.stringify({ id })
                 });
+
+                if (response.status === 401) {
+                    clearSession();
+                    showLoginScreen();
+                    return;
+                }
 
                 if (!response.ok) {
                     throw new Error('Failed to delete feedback');
