@@ -245,7 +245,9 @@
         <div class="contact-form">
             <div id="messageContainer"></div>
             
-            <form id="contactForm" name="contact" netlify method="POST" action="/thank-you.html" data-netlify="true" netlify-honeypot="bot-field">
+            <form id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+                <!-- Hidden field to redirect after successful submission -->
+                <input type="hidden" name="form-name" value="contact" />
                 <!-- Honeypot field for spam protection -->
                 <input type="hidden" name="bot-field" />
                 
@@ -291,11 +293,31 @@
     </div>
 
     <script>
-        // Simple loading state for form submission
+        // Handle form submission with proper redirect
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Sending Message...';
+            
+            // For Netlify Forms with JavaScript, we need to handle the submission manually
+            const formData = new FormData(this);
+            
+            fetch('/', {
+                method: 'POST',
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams(formData).toString()
+            }).then(() => {
+                // Redirect to thank you page on success
+                window.location.href = '/thank-you.html';
+            }).catch((error) => {
+                // Show error message
+                const container = document.getElementById('messageContainer');
+                container.innerHTML = '<div class="error-message">Sorry, there was an error sending your message. Please try again.</div>';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Message';
+            });
+            
+            e.preventDefault();
         });
     </script>
 </body>
