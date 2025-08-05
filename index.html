@@ -32,6 +32,7 @@
             background-color: var(--background-color);
             color: var(--body-color);
             line-height: 1.6;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
         .container {
@@ -174,14 +175,21 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
         }
 
         .modal-content {
             background-color: var(--white);
-            margin: 5% auto;
+            margin: 0;
             padding: 32px;
             border-radius: var(--border-radius);
-            width: 90%;
+            width: 100%;
             max-width: 500px;
             position: relative;
             max-height: 90vh;
@@ -366,8 +374,10 @@
             }
             
             .modal-content {
-                margin: 10% auto;
+                margin: 0;
                 width: 95%;
+                max-width: none;
+                padding: 24px;
             }
         }
 
@@ -630,7 +640,9 @@
         }
 
         async function openOrderModal() {
-            document.getElementById('orderModal').style.display = 'block';
+            const modal = document.getElementById('orderModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent body scroll
             
             // Initialize Flatpickr
             if (flatpickrInstance) {
@@ -704,7 +716,9 @@
         }
 
         function closeOrderModal() {
-            document.getElementById('orderModal').style.display = 'none';
+            const modal = document.getElementById('orderModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = ''; // Restore body scroll
             clearForm();
         }
 
