@@ -31,7 +31,7 @@ function formatPhoneNumber(phone) {
 // Helper function to validate Australian mobile number
 function isValidAustralianMobile(phone) {
   const formatted = formatPhoneNumber(phone);
-  // Australian mobile numbers: +614xxxxxxxx (9 digits after +614)
+  // Australian mobile numbers: +614xxxxxxxx (8 digits after +614)
   const mobileRegex = /^\+614\d{8}$/;
   return mobileRegex.test(formatted);
 }
@@ -92,14 +92,16 @@ exports.handler = async (event, context) => {
 
     const axiosConfig = {
       headers: {
-		 'APPKEY': CELLCAST_APPKEY,
         'Content-Type': 'application/json',
-		'Accept: application/json'
-        
+        'Accept': 'application/json'
+      },
+      auth: {
+        username: CELLCAST_APPKEY,
+        password: '' // Password is not required
       }
     };
 
-    console.log('Sending request to Cellcast with headers:', axiosConfig.headers);
+    console.log('Sending request to Cellcast...');
 
     const response = await axios.post(CELLCAST_API_URL, smsData, axiosConfig);
 
