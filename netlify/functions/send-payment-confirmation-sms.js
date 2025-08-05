@@ -84,7 +84,11 @@ exports.handler = async (event, context) => {
     const axiosConfig = {
       headers: {
         'Content-Type': 'application/json',
-        'APPKEY': CELLCAST_APPKEY
+        'Accept': 'application/json'
+      },
+      auth: {
+        username: CELLCAST_APPKEY,
+        password: '' // Password is not required
       }
     };
 

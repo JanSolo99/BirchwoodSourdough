@@ -1,4 +1,5 @@
 const Airtable = require('airtable');
+const axios = require('axios');
 
 exports.handler = async function(event, context) {
     if (event.httpMethod !== 'POST') {
@@ -181,50 +182,42 @@ exports.handler = async function(event, context) {
 
         // Send confirmation email
         try {
-          const emailResponse = await fetch('/.netlify/functions/send-confirmation-email', {
-            method: 'POST',
+          const emailResponse = await axios.post(`${process.env.URL || 'https://birchwood-sourdough.netlify.app'}/.netlify/functions/send-confirmation-email`, {
+            customerName,
+            contactInfo,
+            pickupDay,
+            pickupLocation,
+            numLoaves,
+            totalAmount: calculatedTotal,
+            orderReference
+          }, {
             headers: {
               'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              customerName,
-              contactInfo,
-              pickupDay,
-              pickupLocation,
-              numLoaves,
-              totalAmount: calculatedTotal,
-              orderReference
-            })
+            }
           });
-          if (!emailResponse.ok) {
-            console.error('Failed to send confirmation email:', await emailResponse.text());
-          }
+          console.log('Email confirmation sent successfully');
         } catch (emailError) {
-          console.error('Error sending confirmation email:', emailError);
+          console.error('Error sending confirmation email:', emailError.message);
         }
 
         // Send confirmation SMS
         try {
-          const smsResponse = await fetch('/.netlify/functions/send-confirmation-sms', {
-            method: 'POST',
+          const smsResponse = await axios.post(`${process.env.URL || 'https://birchwood-sourdough.netlify.app'}/.netlify/functions/send-confirmation-sms`, {
+            customerName,
+            contactInfo,
+            pickupDay,
+            pickupLocation,
+            numLoaves,
+            totalAmount: calculatedTotal,
+            orderReference
+          }, {
             headers: {
               'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              customerName,
-              contactInfo,
-              pickupDay,
-              pickupLocation,
-              numLoaves,
-              totalAmount: calculatedTotal,
-              orderReference
-            })
+            }
           });
-          if (!smsResponse.ok) {
-            console.error('Failed to send confirmation SMS:', await smsResponse.text());
-          }
+          console.log('SMS confirmation sent successfully');
         } catch (smsError) {
-          console.error('Error sending confirmation SMS:', smsError);
+          console.error('Error sending confirmation SMS:', smsError.message);
         }
 
         console.log(`Order created successfully: ${createResponse[0].id}`);

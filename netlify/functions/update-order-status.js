@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Airtable = require('airtable');
+const axios = require('axios');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-that-is-long-and-secure';
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
@@ -54,26 +55,22 @@ exports.handler = async (event, context) => {
     if (status === 'Payment Received' || status === 'Confirmed') {
       try {
         const orderData = orderRecord.fields;
-        const smsResponse = await fetch('/.netlify/functions/send-payment-confirmation-sms', {
-          method: 'POST',
+        const smsResponse = await axios.post(`${process.env.URL || 'https://birchwood-sourdough.netlify.app'}/.netlify/functions/send-payment-confirmation-sms`, {
+          customerName: orderData['Customer Name'],
+          contactInfo: orderData['Contact Info'],
+          pickupDay: orderData['Pickup Day'],
+          pickupLocation: orderData['Pickup Location'],
+          numLoaves: orderData['Number of Loaves'],
+          orderReference: orderData['Order Reference']
+        }, {
           headers: {
             'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            customerName: orderData['Customer Name'],
-            contactInfo: orderData['Contact Info'],
-            pickupDay: orderData['Pickup Day'],
-            pickupLocation: orderData['Pickup Location'],
-            numLoaves: orderData['Number of Loaves'],
-            orderReference: orderData['Order Reference']
-          })
+          }
         });
         
-        if (!smsResponse.ok) {
-          console.error('Failed to send payment confirmation SMS:', await smsResponse.text());
-        }
+        console.log('Payment confirmation SMS sent successfully');
       } catch (smsError) {
-        console.error('Error sending payment confirmation SMS:', smsError);
+        console.error('Error sending payment confirmation SMS:', smsError.message);
       }
     }
 
