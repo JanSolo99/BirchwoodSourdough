@@ -92,8 +92,10 @@ exports.handler = async (event, context) => {
 
     const axiosConfig = {
       headers: {
+		 'APPKEY': CELLCAST_APPKEY,
         'Content-Type': 'application/json',
-        'APPKEY': CELLCAST_APPKEY
+		'Accept: application/json'
+        
       }
     };
 
