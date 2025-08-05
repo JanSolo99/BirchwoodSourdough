@@ -27,6 +27,10 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--background-color);
@@ -88,6 +92,30 @@
         .admin-button:hover {
             color: #ffffff;
             text-decoration: underline;
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            display: none;
+            gap: 16px;
+            margin-top: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            color: var(--body-color);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            background-color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
         }
 
         /* Sections */
@@ -355,29 +383,252 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+
+            .container {
+                padding: 0 12px;
+            }
+
+            /* Mobile Header */
+            .header {
+                padding: 24px 0 16px 0;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                background-color: var(--background-color);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+
+            .site-title {
+                margin-bottom: 12px;
+            }
+
             .site-title .birchwood {
-                font-size: 3rem;
+                font-size: 2.2rem;
+                margin-bottom: 0;
             }
             
             .site-title .sourdough {
-                font-size: 2.5rem;
+                font-size: 1.8rem;
+            }
+
+            /* Show mobile navigation */
+            .mobile-nav {
+                display: flex;
+            }
+
+            /* Mobile Sections */
+            .section {
+                margin-bottom: 32px;
+            }
+
+            .section-title {
+                font-size: 1.4rem;
+                margin-bottom: 16px;
+                padding-left: 4px;
             }
             
+            /* Mobile Product Grid */
             .product-grid {
                 grid-template-columns: 1fr;
-                max-width: 350px;
-                margin: 0 0 32px 0;
+                gap: 16px;
+                max-width: 100%;
+                margin: 0 0 24px 0;
             }
-            
-            .newsletter-form {
+
+            .product-card {
+                display: flex;
+                flex-direction: row;
+                height: 140px;
+                overflow: hidden;
+            }
+
+            .product-image-container {
+                width: 140px;
+                height: 140px;
+                flex-shrink: 0;
+            }
+
+            .product-info {
+                padding: 16px;
+                display: flex;
                 flex-direction: column;
+                justify-content: space-between;
+                flex-grow: 1;
+            }
+
+            .product-title {
+                font-size: 1.1rem;
+                margin-bottom: 4px;
+                line-height: 1.2;
+            }
+
+            .product-description {
+                font-size: 0.85rem;
+                margin-bottom: 8px;
+                line-height: 1.4;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .product-price {
+                font-size: 1rem;
+                margin-bottom: 4px;
+            }
+
+            /* Mobile Footer */
+            .footer {
+                padding: 24px 0;
+                font-size: 0.85rem;
+            }
+
+            .social-section {
+                margin-bottom: 16px;
+            }
+
+            .social-button {
+                font-size: 0.9rem;
+                padding: 10px 16px;
+            }
+
+            /* Mobile Feedback Section */
+            .feedback-section {
+                padding: 32px 0;
+            }
+
+            .feedback-container {
+                margin-bottom: 16px;
+            }
+
+            .feedback-card {
+                width: calc(100vw - 48px);
+                padding: 16px;
+            }
+
+            .feedback-author {
+                font-size: 0.95rem;
+            }
+
+            .feedback-text {
+                font-size: 0.85rem;
+                line-height: 1.4;
+            }
+
+            .feedback-button {
+                width: 100%;
+                text-align: center;
+                display: block;
+                padding: 12px 20px;
+                font-size: 0.95rem;
             }
             
+            /* Mobile Modal */
+            .modal {
+                padding: 16px;
+            }
+
             .modal-content {
                 margin: 0;
-                width: 95%;
+                width: 100%;
                 max-width: none;
-                padding: 24px;
+                padding: 20px;
+                max-height: 85vh;
+            }
+
+            .close {
+                width: 32px;
+                height: 32px;
+                font-size: 24px;
+                right: 12px;
+                top: 12px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-label {
+                font-size: 0.9rem;
+                margin-bottom: 6px;
+            }
+
+            .form-input,
+            .form-select {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 10px 12px;
+            }
+
+            .submit-button {
+                width: 100%;
+                padding: 14px;
+                font-size: 1rem;
+            }
+
+            .availability-info {
+                margin-bottom: 16px;
+                padding: 12px;
+            }
+
+            .availability-info h4 {
+                font-size: 0.95rem;
+                margin-bottom: 8px;
+            }
+
+            #availabilityDisplay {
+                font-size: 0.85rem;
+            }
+
+            /* Mobile Navigation Buttons */
+            .admin-button,
+            .feedback-button {
+                touch-action: manipulation; /* Prevents double-tap zoom */
+            }
+
+            /* Improve touch targets */
+            button,
+            a,
+            input,
+            select,
+            .product-card {
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+
+            /* Better scrolling */
+            * {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Very small phones */
+        @media (max-width: 360px) {
+            .site-title .birchwood {
+                font-size: 1.8rem;
+            }
+            
+            .site-title .sourdough {
+                font-size: 1.5rem;
+            }
+
+            .product-card {
+                height: 120px;
+            }
+
+            .product-image-container {
+                width: 120px;
+                height: 120px;
+            }
+
+            .product-title {
+                font-size: 1rem;
+            }
+
+            .product-description {
+                -webkit-line-clamp: 1;
             }
         }
 
@@ -452,6 +703,12 @@
             margin-bottom: 8px;
         }
 
+        .feedback-text {
+            font-size: 0.95rem;
+            color: var(--body-color);
+            line-height: 1.5;
+        }
+
         /* Only run animation if there are multiple items */
         .feedback-scroll.single-item {
             animation: none;
@@ -508,16 +765,24 @@
                 <span class="birchwood">BIRCHWOOD</span>
                 <span class="sourdough">SOURDOUGH</span>
             </h1>
+            <nav class="mobile-nav">
+                <a href="#bread" class="nav-link">Bread</a>
+                <a href="#feedback" class="nav-link">Reviews</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+            </nav>
         </div>
     </header>
 
     <main class="container">
-        <section class="section">
+        <section class="section" id="bread">
             <h2 class="section-title">Bread</h2>
             <div class="product-grid">
                 <div class="product-card" onclick="openOrderModal()">
                     <div class="product-image-container">
-                        <img src="https://13900683.cdn6.editmysite.com/uploads/1/3/9/0/13900683/KMTUDEQLYHGO3MBZTTXRJ2FJ.jpeg?width=640&optimize=medium" alt="Organic Classic Sourdough" class="product-image">
+                        <img src="https://13900683.cdn6.editmysite.com/uploads/1/3/9/0/13900683/KMTUDEQLYHGO3MBZTTXRJ2FJ.jpeg?width=640&optimize=medium" 
+                             alt="Organic Classic Sourdough" 
+                             class="product-image"
+                             loading="lazy">
                     </div>
                     <div class="product-info">
                         <h3 class="product-title">Organic Classic Sourdough</h3>
@@ -530,7 +795,7 @@
         </section>
     </main>
 
-    <section class="feedback-section">
+    <section class="feedback-section" id="feedback">
         <div class="container">
             <h2 class="section-title">What Our Customers Say</h2>
             <div class="feedback-container">
