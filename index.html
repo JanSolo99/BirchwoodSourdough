@@ -566,9 +566,14 @@
             }
 
             .modal-header {
-                padding: 16px 20px;
-                flex-shrink: 0;
-            }
+				position: sticky;
+				top: 0;
+				background: white;
+				z-index: 10;
+				border-radius: 12px 12px 0 0;
+				/* optional: add a subtle shadow for separation */
+				box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+			}
 
             .modal-title {
                 font-size: 1.2rem;
@@ -586,7 +591,7 @@
                 font-size: 24px;
                 right: 12px;
                 top: 12px;
-				z-index: 10;
+
             }
 
             .form-group {
