@@ -230,11 +230,28 @@
             transform: translateY(0);
         }
 
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--heading-color);
+        }
+
+        .modal-body {
+            padding-top: 20px;
+            overflow-y: auto;
+        }
+
         .close {
-            position: absolute;
-            right: 16px;
-            top: 16px;
-            font-size: 24px;
+            position: static;
+            font-size: 28px;
             cursor: pointer;
             background: none;
             border: none;
@@ -540,9 +557,25 @@
                 margin: 0;
                 width: 100%;
                 max-width: none;
-                padding: 20px;
+                padding: 0;
                 max-height: 90vh;
                 border-radius: 12px 12px 0 0;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .modal-header {
+                padding: 16px 20px;
+                flex-shrink: 0;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+            }
+
+            .modal-body {
+                padding: 0 20px 20px 20px;
+                overflow-y: auto;
             }
 
             .close {
@@ -849,54 +882,57 @@
     <!-- Order Modal -->
     <div id="orderModal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeOrderModal()">&times;</button>
-            <h2 style="margin-bottom: 24px; color: var(--heading-color);">Preorder Your Fresh Bread</h2>
-            
-            <div id="messageContainer"></div>
-            
-            <div class="availability-info">
-                <h4 style="margin-bottom: 12px;">Date-Specific Availability (4 loaves max per day):</h4>
-                <div id="availabilityDisplay">Select a date to see availability...</div>
+            <div class="modal-header">
+                <h2 class="modal-title">Preorder Your Fresh Bread</h2>
+                <button class="close" onclick="closeOrderModal()">&times;</button>
             </div>
-            
-            <form id="orderForm">
-                <div class="form-group">
-                    <label class="form-label" for="customerName">Your Name *</label>
-                    <input type="text" id="customerName" name="customerName" class="form-input" required>
+            <div class="modal-body">
+                <div id="messageContainer"></div>
+                
+                <div class="availability-info">
+                    <h4 style="margin-bottom: 12px;">Date-Specific Availability (4 loaves max per day):</h4>
+                    <div id="availabilityDisplay">Select a date to see availability...</div>
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label" for="contactInfo">Phone or Email *</label>
-                    <input type="text" id="contactInfo" name="contactInfo" class="form-input" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="pickupDay">Pickup Date *</label>
-                    <input type="text" id="pickupDay" name="pickupDay" class="form-input" placeholder="Select pickup date..." required readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="pickupLocation">Pickup Location *</label>
-                    <select id="pickupLocation" name="pickupLocation" class="form-select" required>
-                        <option value="">Select pickup location</option>
-                        <option value="Linq Apartments Courtyard">Linq Apartments Courtyard</option>
-                        <option value="Praksis">Praksis</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="numLoaves">Number of Loaves *</label>
-                    <select id="numLoaves" name="numLoaves" class="form-select" required>
-                        <option value="">Select quantity</option>
-                        <option value="1">1 loaf - A$9.00</option>
-                        <option value="2">2 loaves - A$18.00</option>
-                        <option value="3">3 loaves - A$27.00</option>
-                        <option value="4">4 loaves - A$36.00</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="submit-btn" id="submitBtn">Place Preorder</button>
-            </form>
+                <form id="orderForm">
+                    <div class="form-group">
+                        <label class="form-label" for="customerName">Your Name *</label>
+                        <input type="text" id="customerName" name="customerName" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="contactInfo">Phone or Email *</label>
+                        <input type="text" id="contactInfo" name="contactInfo" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="pickupDay">Pickup Date *</label>
+                        <input type="text" id="pickupDay" name="pickupDay" class="form-input" placeholder="Select pickup date..." required readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="pickupLocation">Pickup Location *</label>
+                        <select id="pickupLocation" name="pickupLocation" class="form-select" required>
+                            <option value="">Select pickup location</option>
+                            <option value="Linq Apartments Courtyard">Linq Apartments Courtyard</option>
+                            <option value="Praksis">Praksis</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="numLoaves">Number of Loaves *</label>
+                        <select id="numLoaves" name="numLoaves" class="form-select" required>
+                            <option value="">Select quantity</option>
+                            <option value="1">1 loaf - A$9.00</option>
+                            <option value="2">2 loaves - A$18.00</option>
+                            <option value="3">3 loaves - A$27.00</option>
+                            <option value="4">4 loaves - A$36.00</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submitBtn">Place Preorder</button>
+                </form>
+            </div>
         </div>
     </div>
 
