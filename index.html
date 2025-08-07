@@ -236,6 +236,7 @@
             align-items: center;
             padding-bottom: 16px;
             border-bottom: 1px solid #eee;
+			position: relative;
         }
 
         .modal-title {
@@ -579,6 +580,7 @@
             }
 
             .close {
+				position: absolute;
                 width: 32px;
                 height: 32px;
                 font-size: 24px;
@@ -685,12 +687,11 @@
         }
 
         .feedback-container {
-            overflow: hidden;
-            position: relative;
-            width: 100%;
-            margin-bottom: 32px;
-            touch-action: pan-x;
-        }
+			overflow: hidden;
+			position: relative;
+			width: 100%;
+			margin-bottom: 32px;
+		}
 
         .feedback-scroll {
             display: flex;
