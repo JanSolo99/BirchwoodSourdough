@@ -1,12 +1,12 @@
 const jwt = require('jsonwebtoken');
 const Airtable = require('airtable');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-that-is-long-and-secure';
+const JWT_SECRET = process.env.JWT_SECRET;
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID);
 
 exports.handler = async (event) => {
     const headers = {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',')[0] : 'https://birchwood-sourdough.netlify.app',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
     };

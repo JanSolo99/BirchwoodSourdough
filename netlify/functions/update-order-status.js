@@ -2,18 +2,45 @@ const jwt = require('jsonwebtoken');
 const Airtable = require('airtable');
 const axios = require('axios');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-that-is-long-and-secure';
+const JWT_SECRET = process.env.JWT_SECRET;
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['https://birchwood-sourdough.netlify.app'];
+
+function getCORSHeaders(origin) {
+  const isAllowedOrigin = ALLOWED_ORIGINS.includes(origin) || 
+    (process.env.NODE_ENV === 'development' && origin && origin.includes('localhost'));
+  
+  return {
+    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block'
+  };
+}
+
+function logSecurityEvent(event, ip, details = {}) {
+  const timestamp = new Date().toISOString();
+  console.log(`[SECURITY] ${timestamp} - ${event} from ${ip}:`, details);
+}
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 
 const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 
 exports.handler = async (event, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
+  const clientIP = event.headers['x-forwarded-for'] || event.headers['x-real-ip'] || 'unknown';
+  const origin = event.headers.origin;
+  const headers = getCORSHeaders(origin);
+  
+  if (!JWT_SECRET) {
+    logSecurityEvent('MISSING_JWT_SECRET', clientIP);
+    return {
+      statusCode: 503,
+      headers,
+      body: JSON.stringify({ error: 'Service unavailable' })
+    };
+  }
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers };
@@ -25,14 +52,41 @@ exports.handler = async (event, context) => {
       return { statusCode: 401, headers, body: JSON.stringify({ error: 'Authorization header required' }) };
     }
 
-    const token = event.headers.authorization.split(' ')[1];
+    const authHeader = event.headers.authorization;
+    if (!authHeader.startsWith('Bearer ')) {
+      logSecurityEvent('INVALID_AUTH_FORMAT', clientIP);
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid authorization format' }) };
+    }
+
+    const token = authHeader.split(' ')[1];
     if (!token) {
+      logSecurityEvent('MISSING_TOKEN', clientIP);
       return { statusCode: 401, headers, body: JSON.stringify({ error: 'Token not provided' }) };
     }
 
-    jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    if (decoded.ip && decoded.ip !== clientIP) {
+      logSecurityEvent('TOKEN_IP_MISMATCH', clientIP, { tokenIP: decoded.ip });
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid token' }) };
+    }
 
     const { orderId, status } = JSON.parse(event.body);
+    
+    // Validate input
+    if (!orderId || !status) {
+      logSecurityEvent('INVALID_UPDATE_DATA', clientIP);
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Order ID and status are required' }) };
+    }
+    
+    // Validate status values
+    const allowedStatuses = ['Pending Payment', 'Payment Received', 'Ready for Pickup', 'Completed', 'Cancelled'];
+    if (!allowedStatuses.includes(status)) {
+      logSecurityEvent('INVALID_STATUS', clientIP, { status });
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid status value' }) };
+    }
+    
+    logSecurityEvent('ORDER_STATUS_UPDATE', clientIP, { orderId, status });
 
     // First, get the order details before updating
     let orderRecord;
@@ -82,9 +136,10 @@ exports.handler = async (event, context) => {
 
   } catch (error) {
     if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      logSecurityEvent('INVALID_TOKEN', clientIP, { error: error.name });
       return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid or expired token' }) };
     }
-    console.error('Error updating order status:', error);
+    logSecurityEvent('ORDER_UPDATE_ERROR', clientIP, { error: error.message });
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Internal server error' }) };
   }
 };
