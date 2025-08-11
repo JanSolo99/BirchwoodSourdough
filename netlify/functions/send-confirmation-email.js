@@ -56,7 +56,7 @@ exports.handler = async (event, context) => {
       subject: 'Your Birchwood Sourdough Order Confirmation',
       html: `
         <h1>Thanks for your order, ${safeCustomerName}!</h1>
-        <p>Your order for ${numLoaves} loaf${numLoaves > 1 ? 'ves' : ''} on ${pickupDay} at ${safePickupLocation || 'TBD'} has been received.</p>
+        <p>Your order for ${numLoaves} ${numLoaves > 1 ? 'loaves' : 'loaf'} on ${pickupDay} at ${safePickupLocation || 'TBD'} has been received.</p>
         <p>To confirm your order, please make a payment of A$${totalAmount} to the following PayID:</p>
         <ul>
           <li><strong>PayID:</strong> janberkhout@up.me</li>

@@ -71,7 +71,7 @@ exports.handler = async (event, context) => {
       return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid token' }) };
     }
 
-    const { orderId, status } = JSON.parse(event.body);
+    const { orderId, status, skipNotifications } = JSON.parse(event.body);
     
     // Validate input
     if (!orderId || !status) {
@@ -128,8 +128,8 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // If status is being changed to "Ready for Pickup", send confirmation email/SMS
-    if (status === 'Ready for Pickup') {
+    // If status is being changed to "Ready for Pickup", send confirmation email/SMS (unless skipped for custom messages)
+    if (status === 'Ready for Pickup' && !skipNotifications) {
       try {
         const orderData = orderRecord.fields;
         const contactInfo = orderData['Contact Info'];

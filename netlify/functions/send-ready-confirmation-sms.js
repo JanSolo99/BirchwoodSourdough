@@ -35,7 +35,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { customerName, contactInfo, pickupDay, pickupLocation, numLoaves, orderReference } = JSON.parse(event.body);
+    const { customerName, contactInfo, pickupDay, pickupLocation, numLoaves, orderReference, customMessage } = JSON.parse(event.body);
 
     // Check if contact info looks like a phone number
     if (!contactInfo || contactInfo.includes('@') || !/\d/.test(contactInfo)) {
@@ -72,7 +72,8 @@ exports.handler = async (event, context) => {
 
     console.log('Sending ready for pickup SMS to:', formattedPhone);
 
-    const message = `Hi ${customerName}! Great news - your ${numLoaves} loaf${numLoaves > 1 ? 'ves' : ''} are ready for pickup on ${pickupDay} at ${pickupLocation || 'the usual location'}. Please text 0458145111 to arrange collection. Thanks for choosing Birchwood Sourdough!`;
+    // Use custom message if provided, otherwise use default
+    const message = customMessage || `Hi ${customerName}! Great news - your order is ready for pickup on ${pickupDay} at ${pickupLocation || 'the usual location'}. Please text 0458145111 to arrange collection. Thanks for choosing Birchwood Sourdough!`;
 
     // Cellcast API request
     const smsData = {

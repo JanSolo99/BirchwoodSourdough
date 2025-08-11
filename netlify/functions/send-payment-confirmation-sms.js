@@ -72,7 +72,7 @@ exports.handler = async (event, context) => {
 
     console.log('Sending payment confirmation SMS to:', formattedPhone);
 
-    const message = `Great news ${customerName}! Your payment has been received. Your ${numLoaves} loaf${numLoaves > 1 ? 'ves' : ''} will be ready for pickup on ${pickupDay} at ${pickupLocation || 'the usual location'}. Thanks for choosing Birchwood Sourdough!`;
+    const message = `Great news ${customerName}! Your payment has been received. Your ${numLoaves} ${numLoaves > 1 ? 'loaves' : 'loaf'} will be ready for pickup on ${pickupDay} at ${pickupLocation || 'the usual location'}. Thanks for choosing Birchwood Sourdough!`;
 
     // Cellcast API request
     const smsData = {

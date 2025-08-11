@@ -347,6 +347,132 @@
             display: none !important;
         }
 
+        /* Custom Message Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            color: var(--heading-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: var(--heading-color);
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .order-summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .message-type-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .message-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        .message-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .character-count {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: var(--white);
+        }
+
+        .btn-cancel:hover {
+            background-color: #5a6268;
+        }
+
         .back-button {
             color: var(--body-color);
             text-decoration: none;
@@ -553,6 +679,44 @@
             </div>
         </div>
     </div>
+
+    <!-- Custom Message Modal -->
+    <div id="customMessageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Send Ready Notification</h2>
+                <span class="close" onclick="closeCustomMessageModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="order-summary" id="orderSummary"></div>
+                
+                <div class="message-type-tabs">
+                    <button class="tab-button active" onclick="switchTab('email')" id="emailTab">Email Message</button>
+                    <button class="tab-button" onclick="switchTab('sms')" id="smsTab">SMS Message</button>
+                </div>
+                
+                <div id="emailContent" class="tab-content active">
+                    <label for="emailSubject" class="form-label">Subject:</label>
+                    <input type="text" id="emailSubject" class="form-input" style="margin-bottom: 15px;">
+                    
+                    <label for="emailMessage" class="form-label">Message:</label>
+                    <textarea id="emailMessage" class="message-textarea" placeholder="Enter your email message..."></textarea>
+                    <div class="character-count" id="emailCharCount">0 characters</div>
+                </div>
+                
+                <div id="smsContent" class="tab-content">
+                    <label for="smsMessage" class="form-label">SMS Message:</label>
+                    <textarea id="smsMessage" class="message-textarea" placeholder="Enter your SMS message..." maxlength="320"></textarea>
+                    <div class="character-count" id="smsCharCount">0 / 320 characters</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel btn-small" onclick="closeCustomMessageModal()">Cancel</button>
+                <button class="btn btn-primary btn-small" onclick="sendCustomReadyNotification()">Send Notification</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Session management
         let authToken = localStorage.getItem('adminAuthToken');
@@ -764,7 +928,7 @@
                             </button>
                         ` : ''}
                         ${order.status === 'Payment Received' ? `
-                            <button onclick="updateOrderStatus('${order.id}', 'Ready for Pickup')" class="btn btn-warning" style="font-size: 0.8rem; padding: 6px 12px;">
+                            <button onclick="openCustomMessageModal('${order.id}')" class="btn btn-warning" style="font-size: 0.8rem; padding: 6px 12px;">
                                 Ready
                             </button>
                         ` : ''}
@@ -778,7 +942,7 @@
             `).join('');
         }
 
-        async function updateOrderStatus(orderId, newStatus) {
+        async function updateOrderStatus(orderId, newStatus, skipNotifications = false) {
             if (!authToken) {
                 showLoginScreen();
                 return;
@@ -793,7 +957,8 @@
                     },
                     body: JSON.stringify({
                         orderId: orderId,
-                        status: newStatus
+                        status: newStatus,
+                        skipNotifications: skipNotifications
                     })
                 });
 
@@ -1008,6 +1173,206 @@
         }
 
         document.addEventListener('DOMContentLoaded', loadFeedback);
+
+        // Custom message modal functionality
+        let currentOrderForNotification = null;
+
+        function openCustomMessageModal(orderId) {
+            currentOrderForNotification = orderId;
+            const order = allOrders.find(o => o.id === orderId);
+            
+            if (!order) {
+                showError('Order not found');
+                return;
+            }
+
+            // Populate order summary
+            document.getElementById('orderSummary').innerHTML = `
+                <h4>Order Details</h4>
+                <p><strong>Customer:</strong> ${escapeHtml(order.customerName)}</p>
+                <p><strong>Contact:</strong> ${escapeHtml(order.contactInfo)}</p>
+                <p><strong>Loaves:</strong> ${order.numLoaves}</p>
+                <p><strong>Pickup:</strong> ${formatDate(order.pickupDay)} at ${escapeHtml(order.pickupLocation || 'TBD')}</p>
+                <p><strong>Reference:</strong> ${order.orderReference || 'N/A'}</p>
+            `;
+
+            // Set default messages
+            const isEmail = order.contactInfo && order.contactInfo.includes('@');
+            const isSMS = order.contactInfo && !order.contactInfo.includes('@') && /\d/.test(order.contactInfo);
+
+            // Default email message
+            const defaultEmailSubject = 'Your Birchwood Sourdough Order is Ready!';
+            const defaultEmailMessage = `Great news, ${order.customerName}!
+
+Your order for ${order.numLoaves} ${order.numLoaves > 1 ? 'loaves' : 'loaf'} is now ready for pickup!
+
+Pickup Details:
+• Date: ${order.pickupDay}
+• Location: ${order.pickupLocation || 'TBD'}
+• Order Reference: ${order.orderReference || 'N/A'}
+
+To arrange collection, please text 0458145111.
+
+Thank you for choosing Birchwood Sourdough!
+
+The Birchwood Sourdough Team`;
+
+            // Default SMS message
+            const defaultSMSMessage = `Hi ${order.customerName}! Great news - your order is ready for pickup on ${order.pickupDay} at ${order.pickupLocation || 'the usual location'}. Please text 0458145111 to arrange collection. Thanks for choosing Birchwood Sourdough!`;
+
+            document.getElementById('emailSubject').value = defaultEmailSubject;
+            document.getElementById('emailMessage').value = defaultEmailMessage;
+            document.getElementById('smsMessage').value = defaultSMSMessage;
+
+            // Show/hide tabs based on contact method
+            if (isEmail && !isSMS) {
+                // Email only
+                document.getElementById('emailTab').style.display = 'block';
+                document.getElementById('smsTab').style.display = 'none';
+                switchTab('email');
+            } else if (isSMS && !isEmail) {
+                // SMS only
+                document.getElementById('emailTab').style.display = 'none';
+                document.getElementById('smsTab').style.display = 'block';
+                switchTab('sms');
+            } else {
+                // Show both tabs
+                document.getElementById('emailTab').style.display = 'block';
+                document.getElementById('smsTab').style.display = 'block';
+                switchTab('email');
+            }
+
+            // Update character counts
+            updateCharacterCount();
+
+            // Show modal
+            document.getElementById('customMessageModal').style.display = 'block';
+        }
+
+        function closeCustomMessageModal() {
+            document.getElementById('customMessageModal').style.display = 'none';
+            currentOrderForNotification = null;
+        }
+
+        function switchTab(tabType) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabType + 'Tab').classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabType + 'Content').classList.add('active');
+        }
+
+        function updateCharacterCount() {
+            const emailMessage = document.getElementById('emailMessage');
+            const smsMessage = document.getElementById('smsMessage');
+            
+            emailMessage.addEventListener('input', function() {
+                document.getElementById('emailCharCount').textContent = this.value.length + ' characters';
+            });
+            
+            smsMessage.addEventListener('input', function() {
+                document.getElementById('smsCharCount').textContent = this.value.length + ' / 320 characters';
+            });
+
+            // Initial counts
+            document.getElementById('emailCharCount').textContent = emailMessage.value.length + ' characters';
+            document.getElementById('smsCharCount').textContent = smsMessage.value.length + ' / 320 characters';
+        }
+
+        async function sendCustomReadyNotification() {
+            if (!currentOrderForNotification) {
+                showError('No order selected');
+                return;
+            }
+
+            const order = allOrders.find(o => o.id === currentOrderForNotification);
+            if (!order) {
+                showError('Order not found');
+                return;
+            }
+
+            const isEmail = order.contactInfo && order.contactInfo.includes('@');
+            const isSMS = order.contactInfo && !order.contactInfo.includes('@') && /\d/.test(order.contactInfo);
+
+            try {
+                // First update the order status
+                await updateOrderStatus(currentOrderForNotification, 'Ready for Pickup', true);
+
+                // Then send custom notifications
+                if (isEmail) {
+                    const emailSubject = document.getElementById('emailSubject').value.trim();
+                    const emailMessage = document.getElementById('emailMessage').value.trim();
+                    
+                    if (emailSubject && emailMessage) {
+                        try {
+                            await fetch('/.netlify/functions/send-ready-confirmation-email', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${authToken}`
+                                },
+                                body: JSON.stringify({
+                                    customerName: order.customerName,
+                                    contactInfo: order.contactInfo,
+                                    pickupDay: order.pickupDay,
+                                    pickupLocation: order.pickupLocation,
+                                    numLoaves: order.numLoaves,
+                                    orderReference: order.orderReference,
+                                    customSubject: emailSubject,
+                                    customMessage: emailMessage
+                                })
+                            });
+                        } catch (emailError) {
+                            console.error('Error sending custom email:', emailError);
+                        }
+                    }
+                }
+
+                if (isSMS) {
+                    const smsMessage = document.getElementById('smsMessage').value.trim();
+                    
+                    if (smsMessage) {
+                        try {
+                            await fetch('/.netlify/functions/send-ready-confirmation-sms', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${authToken}`
+                                },
+                                body: JSON.stringify({
+                                    customerName: order.customerName,
+                                    contactInfo: order.contactInfo,
+                                    pickupDay: order.pickupDay,
+                                    pickupLocation: order.pickupLocation,
+                                    numLoaves: order.numLoaves,
+                                    orderReference: order.orderReference,
+                                    customMessage: smsMessage
+                                })
+                            });
+                        } catch (smsError) {
+                            console.error('Error sending custom SMS:', smsError);
+                        }
+                    }
+                }
+
+                closeCustomMessageModal();
+                
+            } catch (error) {
+                console.error('Error sending custom notification:', error);
+                showError('Failed to send notification');
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('customMessageModal');
+            if (event.target === modal) {
+                closeCustomMessageModal();
+            }
+        };
+
     </script>
 </body>
 </html>

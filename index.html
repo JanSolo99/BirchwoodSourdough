@@ -981,15 +981,14 @@
                             return false;
                         }
                         
-                        // Check if there are at least 36 hours from now until 8am pickup day
+                        // Check if current time is before 7am on the day before pickup
                         let now = new Date();
-                        let pickupTime = new Date(date);
-                        pickupTime.setHours(8, 0, 0, 0);
+                        let pickupDate = new Date(date);
+                        let cutoffTime = new Date(pickupDate);
+                        cutoffTime.setDate(cutoffTime.getDate() - 1); // Day before pickup
+                        cutoffTime.setHours(7, 0, 0, 0); // 7am cutoff
                         
-                        let timeDiff = pickupTime.getTime() - now.getTime();
-                        let hoursDiff = timeDiff / (1000 * 60 * 60);
-                        
-                        return hoursDiff >= 36;
+                        return now <= cutoffTime;
                     }
                 ],
                 onChange: function(selectedDates, dateStr, instance) {
@@ -1010,7 +1009,7 @@
             let now = new Date();
             let checkDate = new Date();
             
-            // Start checking from tomorrow since we need at least 36 hours
+            // Start checking from tomorrow
             checkDate.setDate(now.getDate() + 1);
 
             // Loop until a valid pickup day is found
@@ -1018,15 +1017,12 @@
                 let dayOfWeek = checkDate.getDay();
                 // 2 = Tuesday, 3 = Wednesday, 4 = Thursday
                 if (dayOfWeek >= 2 && dayOfWeek <= 4) {
-                    // Calculate pickup time (8am on the pickup day)
-                    let pickupTime = new Date(checkDate);
-                    pickupTime.setHours(8, 0, 0, 0);
+                    // Check if current time is before 7am on the day before pickup
+                    let cutoffTime = new Date(checkDate);
+                    cutoffTime.setDate(cutoffTime.getDate() - 1); // Day before pickup
+                    cutoffTime.setHours(7, 0, 0, 0); // 7am cutoff
                     
-                    // Check if there are at least 36 hours from now until 8am pickup day
-                    let timeDiff = pickupTime.getTime() - now.getTime();
-                    let hoursDiff = timeDiff / (1000 * 60 * 60);
-                    
-                    if (hoursDiff >= 36) {
+                    if (now <= cutoffTime) {
                         return checkDate;
                     }
                 }

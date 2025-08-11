@@ -18,7 +18,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { customerName, contactInfo, pickupDay, pickupLocation, numLoaves, orderReference } = JSON.parse(event.body);
+    const { customerName, contactInfo, pickupDay, pickupLocation, numLoaves, orderReference, customSubject, customMessage } = JSON.parse(event.body);
 
     // Validate inputs
     if (!customerName || !contactInfo || !pickupDay || !numLoaves) {
@@ -50,13 +50,11 @@ exports.handler = async (event, context) => {
     const fromAddress = process.env.FROM_EMAIL || 'onboarding@resend.dev';
     console.log('Using from address:', fromAddress);
 
-    const emailResult = await resend.emails.send({
-      from: fromAddress,
-      to: [contactInfo],
-      subject: 'Your Birchwood Sourdough Order is Ready!',
-      html: `
+    // Use custom message if provided, otherwise use default
+    const emailSubject = customSubject || 'Your Birchwood Sourdough Order is Ready!';
+    const emailBody = customMessage ? sanitizeForHTML(customMessage).replace(/\n/g, '<br>') : `
         <h1>Great news, ${safeCustomerName}!</h1>
-        <p>Your order for ${numLoaves} loaf${numLoaves > 1 ? 'ves' : ''} is now ready for pickup!</p>
+        <p>Your order for ${numLoaves} ${numLoaves > 1 ? 'loaves' : 'loaf'} is now ready for pickup!</p>
         <p><strong>Pickup Details:</strong></p>
         <ul>
           <li><strong>Date:</strong> ${pickupDay}</li>
@@ -66,7 +64,13 @@ exports.handler = async (event, context) => {
         <p><strong>To arrange collection, please text 0458145111.</strong></p>
         <p>Thank you for choosing Birchwood Sourdough!</p>
         <p>The Birchwood Sourdough Team</p>
-      `,
+      `;
+
+    const emailResult = await resend.emails.send({
+      from: fromAddress,
+      to: [contactInfo],
+      subject: emailSubject,
+      html: emailBody,
     });
 
     console.log('Ready notification email sent successfully:', emailResult);

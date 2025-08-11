@@ -81,7 +81,7 @@ exports.handler = async (event, context) => {
     console.log('Sending SMS confirmation to:', formattedPhone);
     console.log('Order details:', { customerName, pickupDay, pickupLocation, numLoaves, totalAmount });
 
-    const message = `Hi ${customerName}! Your Birchwood Sourdough order confirmed: ${numLoaves} loaf${numLoaves > 1 ? 'ves' : ''} for pickup on ${pickupDay} at ${pickupLocation || 'TBD location'}. Please pay A$${totalAmount} to PayID: janberkhout@up.me (Ref: ${orderReference}). Thanks!`;
+    const message = `Hi ${customerName}! Your Birchwood Sourdough order confirmed: ${numLoaves} ${numLoaves > 1 ? 'loaves' : 'loaf'} for pickup on ${pickupDay} at ${pickupLocation || 'TBD location'}. Please pay A$${totalAmount} to PayID: janberkhout@up.me (Ref: ${orderReference}). Thanks!`;
 
     // Cellcast API request
     const smsData = {
