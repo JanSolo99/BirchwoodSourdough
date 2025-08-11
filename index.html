@@ -968,8 +968,7 @@
                 flatpickrInstance.destroy();
             }
             
-            const today = new Date();
-            const nextAvailableDate = getNextAvailableDate(today);
+            // Don't calculate next available date since we want user to select
             
             flatpickrInstance = flatpickr("#pickupDay", {
                 dateFormat: "Y-m-d",
@@ -999,10 +998,9 @@
                 }
             });
             
-            // Set default date and fetch stock
-            flatpickrInstance.setDate(nextAvailableDate);
-            selectedPickupDate = nextAvailableDate.toISOString().slice(0, 10);
-            fetchStockLevels(selectedPickupDate);
+            // Don't set a default date - let user select
+            selectedPickupDate = null;
+            updateAvailabilityDisplay('Please select a pickup date');
         }
         
         function getNextAvailableDate() {
@@ -1050,11 +1048,13 @@
             }
         }
 
-        function updateAvailabilityDisplay(errorMessage = null) {
+        function updateAvailabilityDisplay(message = null) {
             const display = document.getElementById('availabilityDisplay');
             
-            if (errorMessage) {
-                display.innerHTML = `<div style="color: #dc3545;">${errorMessage}</div>`;
+            if (message) {
+                const isError = message.includes('Error');
+                const color = isError ? '#dc3545' : '#666';
+                display.innerHTML = `<div style="color: ${color};">${message}</div>`;
                 return;
             }
             
