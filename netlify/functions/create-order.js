@@ -362,44 +362,33 @@ exports.handler = async function(event, context) {
             }
         ]);
 
-        // Send confirmation email
-        try {
-          const emailResponse = await axios.post(`${process.env.URL || 'https://birchwood-sourdough.netlify.app'}/.netlify/functions/send-confirmation-email`, {
-            customerName,
-            contactInfo,
-            pickupDay,
-            pickupLocation,
-            numLoaves,
-            totalAmount: calculatedTotal,
-            orderReference
-          }, {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-          console.log('Email confirmation sent successfully');
-        } catch (emailError) {
-          console.error('Error sending confirmation email:', emailError.message);
+        // Send confirmation email (always send for email contacts)
+        if (contactInfo && contactInfo.includes('@')) {
+          try {
+            const emailResponse = await axios.post(`${process.env.URL || 'https://birchwood-sourdough.netlify.app'}/.netlify/functions/send-confirmation-email`, {
+              customerName,
+              contactInfo,
+              pickupDay,
+              pickupLocation,
+              numLoaves,
+              totalAmount: calculatedTotal,
+              orderReference
+            }, {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+            console.log('Email confirmation sent successfully');
+          } catch (emailError) {
+            console.error('Error sending confirmation email:', emailError.message);
+          }
         }
 
-        // Send confirmation SMS
-        try {
-          const smsResponse = await axios.post(`${process.env.URL || 'https://birchwood-sourdough.netlify.app'}/.netlify/functions/send-confirmation-sms`, {
-            customerName,
-            contactInfo,
-            pickupDay,
-            pickupLocation,
-            numLoaves,
-            totalAmount: calculatedTotal,
-            orderReference
-          }, {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-          console.log('SMS confirmation sent successfully');
-        } catch (smsError) {
-          console.error('Error sending confirmation SMS:', smsError.message);
+        // Skip initial SMS confirmation for phone numbers - they will only get payment confirmation SMS
+        if (contactInfo && contactInfo.includes('@')) {
+          console.log('Email contact - order confirmation sent');
+        } else if (contactInfo && !contactInfo.includes('@') && /\d/.test(contactInfo)) {
+          console.log('Phone contact - skipping initial SMS confirmation, will only send payment confirmation');
         }
 
         logSecurityEvent('ORDER_CREATED', clientIP, {

@@ -128,6 +128,59 @@ exports.handler = async (event, context) => {
       }
     }
 
+    // If status is being changed to "Ready for Pickup", send confirmation email/SMS
+    if (status === 'Ready for Pickup') {
+      try {
+        const orderData = orderRecord.fields;
+        const contactInfo = orderData['Contact Info'];
+        
+        // Send email if contact info is an email
+        if (contactInfo && contactInfo.includes('@')) {
+          try {
+            const emailResponse = await axios.post(`${process.env.URL || 'https://birchwood-sourdough.netlify.app'}/.netlify/functions/send-ready-confirmation-email`, {
+              customerName: orderData['Customer Name'],
+              contactInfo: orderData['Contact Info'],
+              pickupDay: orderData['Pickup Day'],
+              pickupLocation: orderData['Pickup Location'],
+              numLoaves: orderData['Number of Loaves'],
+              orderReference: orderData['Order Reference']
+            }, {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+            console.log('Ready confirmation email sent successfully');
+          } catch (emailError) {
+            console.error('Error sending ready confirmation email:', emailError.message);
+          }
+        }
+        
+        // Send SMS if contact info is a phone number
+        if (contactInfo && !contactInfo.includes('@') && /\d/.test(contactInfo)) {
+          try {
+            const smsResponse = await axios.post(`${process.env.URL || 'https://birchwood-sourdough.netlify.app'}/.netlify/functions/send-ready-confirmation-sms`, {
+              customerName: orderData['Customer Name'],
+              contactInfo: orderData['Contact Info'],
+              pickupDay: orderData['Pickup Day'],
+              pickupLocation: orderData['Pickup Location'],
+              numLoaves: orderData['Number of Loaves'],
+              orderReference: orderData['Order Reference']
+            }, {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+            console.log('Ready confirmation SMS sent successfully');
+          } catch (smsError) {
+            console.error('Error sending ready confirmation SMS:', smsError.message);
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error sending ready confirmation:', error.message);
+      }
+    }
+
     return {
       statusCode: 200,
       headers,
