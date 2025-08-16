@@ -3,8 +3,10 @@
     "allow": [
       "Bash(git remote get-url:*)",
       "Bash(npm audit:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git add:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

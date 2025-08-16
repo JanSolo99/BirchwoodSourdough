@@ -1064,7 +1064,7 @@
             if (selectedPickupDate && dailyStock[selectedPickupDate]) {
                 const stock = dailyStock[selectedPickupDate];
                 const available = stock.max - stock.ordered;
-                const status = available > 0 ? 'available' : 'unavailable';
+                const status = available > 0 ? 'remaining' : 'unavailable';
                 const statusText = available > 0 ? `${available} available` : 'Sold out';
                 
                 console.log(`Stock calculation: max=${stock.max}, ordered=${stock.ordered}, available=${available}`);
