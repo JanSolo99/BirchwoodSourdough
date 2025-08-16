@@ -36,31 +36,39 @@ exports.handler = async function(event, context) {
     try {
         // Check if there's a stock limit set for this specific date
         console.log(`Looking up stock for date: ${date} (format: YYYY-MM-DD)`);
-        const stockRecords = await base('Stock').select({
-            filterByFormula: `{Date} = '${date}'`
-        }).firstPage();
         
-        console.log(`Found ${stockRecords.length} stock records for ${date}`);
+        // Get all stock records and filter manually (Airtable date filtering can be unreliable)
+        const allStockRecords = await base('Stock').select().firstPage();
+        console.log(`Fetched ${allStockRecords.length} total stock records`);
         
-        if (stockRecords.length > 0) {
-            const maxLoaves = stockRecords[0].get('Max Loaves');
+        // Find matching record manually
+        const stockRecord = allStockRecords.find(record => {
+            const recordDate = record.get('Date');
+            let recordDateStr = recordDate;
+            
+            // Handle Date objects
+            if (recordDate instanceof Date) {
+                recordDateStr = recordDate.toISOString().slice(0, 10);
+            }
+            
+            console.log(`Comparing: "${recordDateStr}" === "${date}"`);
+            return recordDateStr === date;
+        });
+        
+        if (stockRecord) {
+            const maxLoaves = stockRecord.get('Max Loaves');
             stockForDate.max = maxLoaves !== undefined ? maxLoaves : 4;
             console.log(`Max loaves for ${date}: ${stockForDate.max} (from Stock table, raw value: ${maxLoaves})`);
         } else {
             console.log(`Max loaves for ${date}: ${stockForDate.max} (using default - no Stock table entry found)`);
             
-            // Debug: Show all dates in Stock table
-            try {
-                const allStockRecords = await base('Stock').select().firstPage();
-                console.log(`All Stock table entries (${allStockRecords.length} total):`);
-                allStockRecords.forEach((record, i) => {
-                    const stockDate = record.get('Date');
-                    const maxLoaves = record.get('Max Loaves');
-                    console.log(`  ${i + 1}. Date: "${stockDate}", Max Loaves: ${maxLoaves}`);
-                });
-            } catch (debugError) {
-                console.log(`Could not fetch all stock records for debugging: ${debugError.message}`);
-            }
+            // Debug: Show all dates in Stock table  
+            console.log(`All Stock table entries (${allStockRecords.length} total):`);
+            allStockRecords.forEach((record, i) => {
+                const stockDate = record.get('Date');
+                const maxLoaves = record.get('Max Loaves');
+                console.log(`  ${i + 1}. Date: "${stockDate}", Max Loaves: ${maxLoaves}`);
+            });
         }
     } catch (error) {
         console.log(`Error fetching stock table, using default: ${error.message}`);
