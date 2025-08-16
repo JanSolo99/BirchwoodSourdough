@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birchwood Sourdough - Maintenance Break</title>
+    <style>
+        :root {
+            --primary-color: #212121;
+            --background-color: #e4ddca;
+            --heading-color: #002f00;
+            --body-color: #463939;
+            --white: #ffffff;
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--body-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .maintenance-container {
+            background: var(--white);
+            padding: 60px 40px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .maintenance-icon {
+            font-size: 4rem;
+            margin-bottom: 30px;
+            display: block;
+        }
+
+        .maintenance-title {
+            color: var(--heading-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .maintenance-subtitle {
+            color: var(--body-color);
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .maintenance-message {
+            color: var(--body-color);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            line-height: 1.8;
+        }
+
+        .business-update {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin: 30px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .business-update h3 {
+            color: var(--heading-color);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .business-update p {
+            color: var(--body-color);
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .contact-info {
+            background: var(--background-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 30px;
+        }
+
+        .contact-info h4 {
+            color: var(--heading-color);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .contact-info p {
+            color: var(--body-color);
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .admin-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .admin-link:hover {
+            opacity: 1;
+            text-decoration: none;
+            color: var(--white);
+        }
+
+        @media (max-width: 768px) {
+            .maintenance-container {
+                padding: 40px 25px;
+            }
+            
+            .maintenance-title {
+                font-size: 2rem;
+            }
+            
+            .maintenance-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .maintenance-message {
+                font-size: 1rem;
+            }
+            
+            .admin-link {
+                position: static;
+                display: inline-block;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-container">
+        <div class="maintenance-icon">🍞</div>
+        
+        <h1 class="maintenance-title">We'll be back after a short break!</h1>
+        
+        <p class="maintenance-subtitle">Official bread business in progress 😎</p>
+        
+        <div class="maintenance-message">
+            <p>We're taking a brief pause to prepare for some exciting changes to bring you even better sourdough experiences.</p>
+        </div>
+
+        <div class="business-update">
+            <h3>🚀 What's happening?</h3>
+            <p>We're working hard behind the scenes to establish Birchwood Sourdough as a proper registered food business.</p>
+            <p>This means better processes, enhanced quality standards, and more delicious bread coming your way!</p>
+        </div>
+
+        <div class="contact-info">
+            <h4>Stay in touch</h4>
+            <p>📧 Questions? Drop us a line and we'll get back to you soon</p>
+            <p>📱 Follow our social media for updates on when we're back</p>
+            <p>🕐 We expect to be back very soon - thanks for your patience!</p>
+        </div>
+
+        <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #eee; font-size: 0.9rem; color: #666;">
+            Thank you for being part of the Birchwood Sourdough community ❤️
+        </div>
+    </div>
+
+    <a href="admin.html" class="admin-link">🔧 Admin</a>
+</body>
+</html>

@@ -656,6 +656,20 @@
         </div>
 
         <div class="filter-section">
+            <h3>🛠️ Maintenance Mode</h3>
+            <div class="filter-group">
+                <label>Website Status:</label>
+                <span id="maintenanceStatus" class="status-badge">Loading...</span>
+                <button onclick="toggleMaintenanceMode()" class="btn btn-warning btn-small" id="maintenanceToggle">
+                    Toggle Maintenance
+                </button>
+                <p style="margin-top: 10px; font-size: 0.9rem; color: var(--body-color);">
+                    Enable maintenance mode to show a "We'll be back soon" page instead of the order form.
+                </p>
+            </div>
+        </div>
+
+        <div class="filter-section">
             <h3>Daily Bake Sheet</h3>
             <div id="bakeSheetContainer"></div>
         </div>
@@ -1372,6 +1386,92 @@ The Birchwood Sourdough Team`;
                 closeCustomMessageModal();
             }
         };
+
+        // Maintenance Mode Functions
+        async function loadMaintenanceStatus() {
+            if (!authToken) return;
+            
+            try {
+                const response = await fetch('/.netlify/functions/get-maintenance-status', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateMaintenanceUI(data.maintenanceMode);
+                } else {
+                    console.error('Failed to load maintenance status');
+                    updateMaintenanceUI(false); // Default to off
+                }
+            } catch (error) {
+                console.error('Error loading maintenance status:', error);
+                updateMaintenanceUI(false); // Default to off
+            }
+        }
+
+        function updateMaintenanceUI(isMaintenanceMode) {
+            const statusElement = document.getElementById('maintenanceStatus');
+            const toggleButton = document.getElementById('maintenanceToggle');
+            
+            if (isMaintenanceMode) {
+                statusElement.textContent = 'Maintenance Mode ON';
+                statusElement.className = 'status-badge status-warning';
+                toggleButton.textContent = 'Disable Maintenance';
+                toggleButton.className = 'btn btn-success btn-small';
+            } else {
+                statusElement.textContent = 'Website Live';
+                statusElement.className = 'status-badge status-completed';
+                toggleButton.textContent = 'Enable Maintenance';
+                toggleButton.className = 'btn btn-warning btn-small';
+            }
+        }
+
+        async function toggleMaintenanceMode() {
+            if (!authToken) {
+                showLoginScreen();
+                return;
+            }
+
+            const toggleButton = document.getElementById('maintenanceToggle');
+            const originalText = toggleButton.textContent;
+            
+            toggleButton.disabled = true;
+            toggleButton.textContent = 'Updating...';
+
+            try {
+                const response = await fetch('/.netlify/functions/toggle-maintenance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateMaintenanceUI(data.maintenanceMode);
+                    showError(data.maintenanceMode ? 
+                        'Maintenance mode enabled. Website is now showing maintenance page.' : 
+                        'Maintenance mode disabled. Website is now live again.'
+                    );
+                } else {
+                    throw new Error('Failed to toggle maintenance mode');
+                }
+            } catch (error) {
+                console.error('Error toggling maintenance mode:', error);
+                showError('Failed to toggle maintenance mode');
+                toggleButton.textContent = originalText;
+            }
+
+            toggleButton.disabled = false;
+        }
+
+        // Load maintenance status when dashboard loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(loadMaintenanceStatus, 1000); // Load after other data
+        });
 
     </script>
 </body>
