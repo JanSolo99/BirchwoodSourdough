@@ -35,15 +35,32 @@ exports.handler = async function(event, context) {
     
     try {
         // Check if there's a stock limit set for this specific date
+        console.log(`Looking up stock for date: ${date} (format: YYYY-MM-DD)`);
         const stockRecords = await base('Stock').select({
             filterByFormula: `{Date} = '${date}'`
         }).firstPage();
         
+        console.log(`Found ${stockRecords.length} stock records for ${date}`);
+        
         if (stockRecords.length > 0) {
-            stockForDate.max = stockRecords[0].get('Max Loaves') || 4;
-            console.log(`Max loaves for ${date}: ${stockForDate.max} (from Stock table)`);
+            const maxLoaves = stockRecords[0].get('Max Loaves');
+            stockForDate.max = maxLoaves !== undefined ? maxLoaves : 4;
+            console.log(`Max loaves for ${date}: ${stockForDate.max} (from Stock table, raw value: ${maxLoaves})`);
         } else {
-            console.log(`Max loaves for ${date}: ${stockForDate.max} (using default - no Stock table entry)`);
+            console.log(`Max loaves for ${date}: ${stockForDate.max} (using default - no Stock table entry found)`);
+            
+            // Debug: Show all dates in Stock table
+            try {
+                const allStockRecords = await base('Stock').select().firstPage();
+                console.log(`All Stock table entries (${allStockRecords.length} total):`);
+                allStockRecords.forEach((record, i) => {
+                    const stockDate = record.get('Date');
+                    const maxLoaves = record.get('Max Loaves');
+                    console.log(`  ${i + 1}. Date: "${stockDate}", Max Loaves: ${maxLoaves}`);
+                });
+            } catch (debugError) {
+                console.log(`Could not fetch all stock records for debugging: ${debugError.message}`);
+            }
         }
     } catch (error) {
         console.log(`Error fetching stock table, using default: ${error.message}`);
