@@ -30,10 +30,25 @@ exports.handler = async function(event, context) {
         };
     }
 
-    // Get stock limits for the date - using hardcoded value since Stock table doesn't exist
+    // Get stock limits for the date from Stock table, fallback to default
     let stockForDate = { max: 4, ordered: 0 }; // Default: 4 loaves max per day
     
-    console.log(`Max loaves for ${date}: ${stockForDate.max} (using default - no Stock table)`);
+    try {
+        // Check if there's a stock limit set for this specific date
+        const stockRecords = await base('Stock').select({
+            filterByFormula: `{Date} = '${date}'`
+        }).firstPage();
+        
+        if (stockRecords.length > 0) {
+            stockForDate.max = stockRecords[0].get('Max Loaves') || 4;
+            console.log(`Max loaves for ${date}: ${stockForDate.max} (from Stock table)`);
+        } else {
+            console.log(`Max loaves for ${date}: ${stockForDate.max} (using default - no Stock table entry)`);
+        }
+    } catch (error) {
+        console.log(`Error fetching stock table, using default: ${error.message}`);
+        console.log(`Max loaves for ${date}: ${stockForDate.max} (using default - Stock table error)`);
+    }
 
     try {
         console.log(`Fetching orders for date: ${date}`);
@@ -76,8 +91,8 @@ exports.handler = async function(event, context) {
             
             console.log(`Order ${index + 1}: ${customerName}, ${loaves} loaves, pickup: ${pickupDay}, status: ${status}`);
             
-            // Only count orders that have been paid or confirmed (not pending payment)
-            const validStatuses = ['Payment Received', 'Ready for Pickup', 'Completed', 'Confirmed'];
+            // Count all orders except cancelled ones (including pending payment)
+            const validStatuses = ['Pending Payment', 'Payment Received', 'Ready for Pickup', 'Completed', 'Confirmed'];
             if (validStatuses.includes(status)) {
                 stockForDate.ordered += loaves;
                 console.log(`  -> Counting ${loaves} loaves (status: ${status})`);
